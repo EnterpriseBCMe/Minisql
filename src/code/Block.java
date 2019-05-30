@@ -91,7 +91,7 @@ public class Block {
     }
 
     public boolean valid() {
-        return this.isLocked;
+        return this.isValid;
     }
 
     public String get_filename() {

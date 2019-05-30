@@ -14,12 +14,53 @@ public class BufferManager {
             buffer[i] = new Block();  //allocate new memory for blocks
     }
 
+    public void test_interface() {
+        Block b = new Block();
+        b.write_integer(1200,2245);
+        b.write_float(76,(float)2232.14);
+        b.write_string(492,"22httnb!");
+        b.set_filename("hello.txt");
+        b.set_block_offset(15);
+        this.buffer[1] = b;
+        write_block_to_disk(1);
+    }
+
     public void destruct_buffer_manager() {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             if (buffer[i].valid()) write_block_to_disk(i); //write back to disk if it's valid
     }
 
-    public boolean read_block_from_disk(String filename, int ofs, int bid) {
+    //if the block exist and it's valid, return this block else return a empty block
+    public int read_block_from_disk(String filename, int ofs) {
+        int i, j;
+        for (i = 0; i < MAXBLOCKNUM; i++)  //find the target block
+            if (buffer[i].valid() && buffer[i].get_filename().equals(filename)
+                    && buffer[i].get_block_offset() == ofs) return i;
+        File file = new File(filename); //block does not found
+        int bid = get_free_block_id();
+        if (bid == EOF || !file.exists()) return EOF; //there are no free blocks
+        if (!read_block_from_disk(filename, ofs, bid)) return EOF;
+        return bid;
+    }
+
+    //if the block exist and it's valid, return this block else return a empty block
+    public Block read_block_from_disk_quote(String filename, int ofs) {
+        int i, j;
+        for (i = 0; i < MAXBLOCKNUM; i++)  //find the target block
+            if (buffer[i].valid() && buffer[i].get_filename().equals(filename)
+                    && buffer[i].get_block_offset() == ofs) break;
+        if (i < MAXBLOCKNUM) {  //there exist a block
+            return buffer[i];
+        } else { //block does not found
+            File file = new File(filename);
+            int bid = get_free_block_id();
+            if (bid == EOF || !file.exists()) return null; //there are no free blocks
+            if (!read_block_from_disk(filename, ofs, bid)) return null;
+            return buffer[bid];
+        }
+    }
+
+    private boolean read_block_from_disk(String filename, int ofs, int bid) {
         boolean flag = false;  //check whether operation is success
         byte[] data = new byte[Block.BLOCKSIZE];  //temporary data
         RandomAccessFile raf = null;  //to seek the position for data to write
@@ -50,24 +91,7 @@ public class BufferManager {
         return flag;
     }
 
-    //if the block exist and it's valid, return this block else return a empty block
-    public Block read_block_from_disk(String filename, int ofs) {
-        int i, j;
-        for (i = 0; i < MAXBLOCKNUM; i++)  //find the target block
-            if (buffer[i].valid() && buffer[i].get_filename().equals(filename)
-                    && buffer[i].get_block_offset() == ofs) break;
-        if (i < MAXBLOCKNUM) {  //there exist a block
-            return buffer[i];
-        } else { //block does not found
-            File file = new File(filename);
-            int bid = get_free_block_id();
-            if (bid == EOF || !file.exists()) return null; //there are no free blocks
-            read_block_from_disk(filename, ofs, bid);
-            return buffer[bid];
-        }
-    }
-
-    public boolean write_block_to_disk(int bid) {
+    private boolean write_block_to_disk(int bid) {
         if (!buffer[bid].dirty()) {  //block is valid but does not be modified
             buffer[bid].valid(false);  //only to make it invalid
             return true;
@@ -94,7 +118,7 @@ public class BufferManager {
         return true;
     }
 
-    public int get_free_block_id() {
+    private int get_free_block_id() {
         int i;
         int index = EOF;  //-1 for none free block exist
         int mincount = 0x7FFFFFFF;  //initialize with maximum integer
@@ -104,8 +128,8 @@ public class BufferManager {
                 mincount = buffer[i].get_LRU();
             }
         }
-        if (index != EOF && buffer[i].dirty())  //if the block is dirty
-            write_block_to_disk(i);
+        if (index != EOF && buffer[index].dirty())  //if the block is dirty
+            write_block_to_disk(index);
         return index;
     }
 
