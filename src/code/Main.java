@@ -10,16 +10,16 @@ public class Main {
         try {
             BufferManager m = new BufferManager();
             int bid = m.read_block_from_disk("hello.txt", 0);
-            print(m,bid);
+            buffer_print(m,bid);
             bid = m.read_block_from_disk("hello.txt", 15);
-            print(m,bid);
+            buffer_print(m,bid);
             //m.test_interface();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void print(BufferManager m, int bid) {
+    public static void buffer_print(BufferManager m, int bid) {
         System.out.println(bid);
         System.out.println("isLock = " + m.buffer[bid].lock());
         System.out.println("isDirty = " + m.buffer[bid].dirty());
