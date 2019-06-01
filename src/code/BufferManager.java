@@ -2,6 +2,7 @@ package code;
 
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.util.Arrays;
 
 public class BufferManager {
 
@@ -16,9 +17,9 @@ public class BufferManager {
 
     public void test_interface() {
         Block b = new Block();
-        b.write_integer(1200,2245);
-        b.write_float(76,(float)2232.14);
-        b.write_string(492,"22httnb!");
+        b.write_integer(1200, 2245);
+        b.write_float(76, (float) 2232.14);
+        b.write_string(492, "22httnb!");
         b.set_filename("hello.txt");
         b.set_block_offset(15);
         this.buffer[1] = b;
@@ -29,6 +30,13 @@ public class BufferManager {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             if (buffer[i].valid()) write_block_to_disk(i); //write back to disk if it's valid
     }
+
+    public void make_invalid(String filename) {
+        for (int i = 0; i < MAXBLOCKNUM; i++)
+            if (buffer[i].get_filename().equals(filename))
+                buffer[i].valid(false);
+    }
+
 
     //if the block exist and it's valid, return this block else return a empty block
     public int read_block_from_disk(String filename, int ofs) {
@@ -70,8 +78,10 @@ public class BufferManager {
             if ((ofs + 1) * Block.BLOCKSIZE <= raf.length()) {  //if the block is in valid position
                 raf.seek(ofs * Block.BLOCKSIZE);
                 raf.read(data, 0, Block.BLOCKSIZE);
-                flag = true;
+            } else {  //when overflow it returns an empty block
+                Arrays.fill(data, (byte) 0);
             }
+            flag = true;
         } catch (Exception e) {
             System.out.println(e.getMessage());
         } finally {

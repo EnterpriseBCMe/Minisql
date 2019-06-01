@@ -7,6 +7,7 @@
 | 2019-05-18 | ycj  | 新建项目框架，约定命名、注释规范 |
 | 2019-05-30 | ycj  | Buffer&BufferManager实现|
 | 2019-06-01 | yrj  | Address&FieldType&TableRow&Condition类实现|
+| 2019-06-01 | ycj | BufferManager类增加了make_invalid接口，修改了read_block_from_disk函数 |
 
 ------------------------------
 
@@ -49,13 +50,17 @@
 //将块中有效的且脏的数据回写到磁盘
 + public void destruct_buffer_manager();
 
+//将缓冲区中对应文件名为filename的块设置为无效
++ public void make_invalid(String filename);
+
 //将文件中的第ofs块读入到缓冲区中
 //如果第ofs块已经在内存中存在，则直接返回对该块的引用
-//如果文件不存在或者ofs不合法或者不存在空闲的块则返回null
+//如果不存在空闲的块则返回null
+//如果ofs溢出，则返回对默认块（所有字节都是0）的引用
 //如果第ofs块在内存中不存在但是其他必要条件满足，则将该块从文件写入到缓冲区中并返回对该块的引用
 + public Block read_block_from_disk_quote(String filename, int ofs);
 
-//将文件中第ofs块读入到缓冲区中，并返回对该块的下标，若出现错误则返回-1
+//将文件中第ofs块读入到缓冲区中，并返回对该块的下标，若出现错误则返回-1或默认块
 + public int read_block_from_disk(String filename, int ofs);
 
 -----------------------------------------
