@@ -118,34 +118,34 @@
 ### Address类说明
 ```java
 //成员变量定义
-private String fileName; //文件名字
-private int blockOffset; //块在文件内的偏移
-private int byteOffset;   //字节在快内的偏移
++ private String fileName; //文件名字
++ private int blockOffset; //块在文件内的偏移
++ private int byteOffset;  //字节在块内的偏移
 ```
 
 ### FieldType 类说明
 ```java
 //成员变量定义
-private String type; // 数值类型,"char","int","float" 三种
-private int length;  // char类型对应的长度
++ private String type; // 数值类型,"char","int","float" 三种
++ private int length;  // char类型对应的长度
 ```
 
 ### Condition 类说明
 ```java
 //成员变量定义
-private String name;  // 属性名字
-private String value; // 属性的值
-private String operator; //操作符，"=","<>",">","<",">=","<=" 六种
++ private String name;  // 属性名字
++ private String value; // 属性的值
++ private String operator; //操作符，"=","<>",">","<",">=","<=" 六种
 ```
 
 ### TableRow 类说明
 ```java
 //成员变量定义
-private List<String> attributeValue; // 属性值列表
++ private List<String> attributeValue; // 属性值列表
 
 //成员方法
-public void add_attribute_value(String attributeValue); // 添加一个属性值
-public String get_attribute_value(int index)； // 得到对应下标的属性值
++ public void add_attribute_value(String attributeValue); // 添加一个属性值
++ public String get_attribute_value(int index)； // 得到对应下标的属性值
 ```
 
 
