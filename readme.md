@@ -120,7 +120,7 @@
 //成员变量定义
 private String fileName; //文件名字
 private int blockOffset; //块在文件内的偏移
-rivate int byteOffset;   //字节在快内的偏移
+private int byteOffset;   //字节在快内的偏移
 ```
 
 ### FieldType 类说明
