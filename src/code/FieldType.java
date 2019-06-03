@@ -16,6 +16,7 @@ public class FieldType {
 
     FieldType(String type) {
         this.type = type; //set type ( for integer and float number )
+        this.length = 1;
     }
 
     FieldType(String type,int length) {

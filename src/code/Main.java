@@ -1,9 +1,13 @@
 package code;
 
+import java.util.Vector;
+
 public class Main {
 
     public static void main(String[] args) {
         buffer_unit_test(); //Buffer Manager test function
+        catalog_unit_test1();
+        //catalog_unit_test2();
     }
 
     public static void buffer_unit_test() {
@@ -35,5 +39,45 @@ public class Main {
         System.out.println(m.buffer[bid].read_integer(128));
     }
 
+    private static void catalog_unit_test2() {
+        try {
+            CatalogManager.initial_catalog();
+            CatalogManager.show_catalog();
+            CatalogManager.store_catalog();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private static void catalog_unit_test1() {
+        try {
+            CatalogManager.initial_catalog();
+            Attribute tmpAttribute1 = new Attribute("id", "integer", true);
+            Attribute tmpAttribute2 = new Attribute("name", "char", 12, true);
+            Attribute tmpAttribute3 = new Attribute("category", "char", 20, true);
+            Vector<Attribute> tmpAttributeVector = new Vector<>();
+            tmpAttributeVector.addElement(tmpAttribute1);
+            tmpAttributeVector.addElement(tmpAttribute2);
+            Table tmpTable1 = new Table("students", "id", tmpAttributeVector);
+            CatalogManager.create_table(tmpTable1);
+            CatalogManager.show_catalog();
+            Index tmpIndex1 = new Index("idIndex", "students", "id");
+            CatalogManager.create_index(tmpIndex1);
+            CatalogManager.show_catalog();
+            tmpAttributeVector.addElement(tmpAttribute3);
+            Table tmpTable2 = new Table("book", "name", tmpAttributeVector);
+            CatalogManager.create_table(tmpTable2);
+            CatalogManager.show_catalog();
+            //CatalogManager.drop_table("students");
+            //CatalogManager.show_catalog();
+            //CatalogManager.drop_index("idIndex");
+            Index tmpIndex2 = new Index("categoryIndex", "book", "category");
+            CatalogManager.create_index(tmpIndex2);
+            CatalogManager.show_catalog();
+            CatalogManager.store_catalog();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }

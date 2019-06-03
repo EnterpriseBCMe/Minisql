@@ -19,6 +19,7 @@ public class Table {
         this.primaryKey = primaryKey;
         this.indexVector = new Vector<>();
         this.indexNum = 0;
+        this.attributeVector = attributeVector;
         this.attributeNum = attributeVector.size();
         this.rowNum = 0;
         for (int i = 0; i < attributeVector.size(); i++) {
@@ -34,6 +35,7 @@ public class Table {
         this.attributeVector = attributeVector;
         this.indexVector = indexVector;
         this.indexNum = indexVector.size();
+        this.attributeVector = attributeVector;
         this.attributeNum = attributeVector.size();
         this.rowNum = rowNum;
         for (int i = 0; i < attributeVector.size(); i++) {
