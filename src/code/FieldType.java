@@ -28,7 +28,15 @@ public class FieldType {
         return this.type;
     }
     int get_length() {
-        return this.length;
+        if(this.type.compareTo("char") == 0) { //char type
+            return this.length * CHARSIZE;
+        } else if(this.type.compareTo("int") == 0) { //integer type
+            return INTSIZE;
+        } else if(this.type.compareTo("float") == 0) { //float type
+            return FLOATSIZE;
+        } else { //undefined type
+            return 0;
+        }
     }
 
     void set_type(String type) {
