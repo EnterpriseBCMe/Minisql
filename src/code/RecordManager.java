@@ -8,7 +8,7 @@ public class RecordManager  {
 
 	private static BufferManager bufferManager = new BufferManager(); //buffer manager
 
-	//create a file for new table, return true if success, otherwise return false
+	//create a file for new table, return true if success, otherwise return false 
 	public static boolean create_table(String tableName) {
 		try {
 			File file =new File(tableName);
