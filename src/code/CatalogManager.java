@@ -262,16 +262,16 @@ public class CatalogManager {
         return false;
     }
 
-    public static String get_index_name(String tableName, String attriName) {
+    public static String get_index_name(String tableName, String attributeName) {
         if (tables.containsKey(tableName)) {
             Table tmpTable = get_table(tableName);
-            if (is_attribute_exist(tableName, attriName)) {
+            if (is_attribute_exist(tableName, attributeName)) {
                 for (int i = 0; i < tmpTable.indexVector.size(); i++) {
-                    if (tmpTable.indexVector.get(i).attributeName.equals(attriName))
+                    if (tmpTable.indexVector.get(i).attributeName.equals(attributeName))
                         return tmpTable.indexVector.get(i).indexName;
                 }
             } else {
-                System.out.println("The attribute " + attriName + " doesn't exist");
+                System.out.println("The attribute " + attributeName + " doesn't exist");
             }
         } else
             System.out.println("The table " + tableName + " doesn't exist");
