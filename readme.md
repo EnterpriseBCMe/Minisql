@@ -271,9 +271,11 @@
 
 //select功能函数，给定一系列地址，返回地址对应的全部记录
 //返回记录的属性顺序和创建表时一致
+//所有地址必须在同一文件内
 + public static Vector<TableRow> select(Vector<Address> address)；
 
 //delete功能函数，给定一系列地址，删除地址对应的记录，返回删除记录的个数
+//所有地址必须在同一文件内
 + public static int delete(Vector<Address> address)；
 
 //project功能函数，给定表名，查询结果和投影属性名称，返回投影后的记录结果
