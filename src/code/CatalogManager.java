@@ -282,7 +282,7 @@ public class CatalogManager {
         return tables.get(tableName).attributeVector.get(i).attributeName;
     }
 
-    public static int get_attribute_offest(String tableName, String attributeName) {
+    public static int get_attribute_index(String tableName, String attributeName) {
         Table tmpTable = tables.get(tableName);
         Attribute tmpAttribute;
         for (int i = 0; i < tmpTable.attributeVector.size(); i++) {
@@ -294,13 +294,13 @@ public class CatalogManager {
         return -1;
     }
 
-    public static String get_type(String tableName, String attributeName) {
+    public static FieldType get_attribute_type(String tableName, String attributeName) {
         Table tmpTable = tables.get(tableName);
         Attribute tmpAttribute;
         for (int i = 0; i < tmpTable.attributeVector.size(); i++) {
             tmpAttribute = tmpTable.attributeVector.get(i);
             if (tmpAttribute.attributeName.equals(attributeName))
-                return tmpAttribute.type.get_type();
+                return tmpAttribute.type;
         }
         System.out.println("The attribute " + attributeName + " doesn't exist");
         return null;
