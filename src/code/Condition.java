@@ -16,11 +16,11 @@ public class Condition {
     }
 
     //if the data in table satisfy the condition, return true, else return false
-    public boolean satisfy(Table table, TableRow data) {
-        int index = CatalogManager.get_attribute_index(table.tableName, this.name); //get attribute index
-        FieldType type = CatalogManager.get_attribute_type(table.tableName, this.name); //get type
+    public boolean satisfy(String tableName, TableRow data) {
+        int index = CatalogManager.get_attribute_index(tableName, this.name); //get attribute index
+        String type = CatalogManager.get_type(tableName, index); //get type
 
-        if (type.get_type().equals("char")) { //char type
+        if (type.equals("char")) { //char type
             String cmpObject = data.get_attribute_value(index);
             String cmpValue = this.value;
             if (this.operator.equals("=")) {
@@ -38,7 +38,7 @@ public class Condition {
             } else { //undefined operator
                 return false;
             }
-        } else if (type.get_type().equals("int")) { //integer type
+        } else if (type.equals("int")) { //integer type
             int cmpObject = Integer.parseInt(data.get_attribute_value(index));
             int cmpValue = Integer.parseInt(this.value);
             if (this.operator.equals("=")) {
@@ -56,7 +56,7 @@ public class Condition {
             } else { //undefined operator
                 return false;
             }
-        } else if (type.get_type().equals("float")) { //float type
+        } else if (type.equals("float")) { //float type
             float cmpObject = Float.parseFloat(data.get_attribute_value(index));
             float cmpValue = Float.parseFloat(this.value);
             if (this.operator.equals("=")) {
@@ -80,27 +80,27 @@ public class Condition {
     }
 
 
-    String get_name() {
+    public String get_name() {
         return this.name;
     }
 
-    String get_value() {
+    public String get_value() {
         return this.value;
     }
 
-    String get_operator() {
+    public String get_operator() {
         return this.operator;
     }
 
-    void set_name(String name) {
+    public void set_name(String name) {
         this.name = name;
     }
 
-    void set_value(String value) {
+    public void set_value(String value) {
         this.value = value;
     }
 
-    void set_operator(String operator) {
+    public void set_operator(String operator) {
         this.operator = operator;
     }
 }
