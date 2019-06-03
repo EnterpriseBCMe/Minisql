@@ -1,18 +1,17 @@
 package code;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
 
 public class TableRow {
 
-    private List<String> attributeValue;
+    private Vector<String> attributeValue;
 
     public TableRow() {
-        attributeValue = new ArrayList<String>();
+        attributeValue = new Vector<>();
     }
 
-    public TableRow(List<String> attributeValue) {
-        this.attributeValue = new ArrayList<String>(attributeValue);
+    public TableRow(Vector<String> attributeValue) {
+        this.attributeValue = new Vector<String>(attributeValue);
     }
 
     //add one new attribute value in table row
@@ -21,6 +20,6 @@ public class TableRow {
     }
 
     public String get_attribute_value(int index) { 
-		return attributeValue.get(index);
-	}
+	return attributeValue.get(index);
+    }
 }
