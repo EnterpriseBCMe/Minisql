@@ -33,10 +33,9 @@ public class BufferManager {
 
     public void make_invalid(String filename) {
         for (int i = 0; i < MAXBLOCKNUM; i++)
-            if (buffer[i].get_filename().equals(filename))
+            if (buffer[i].get_filename() != null && buffer[i].get_filename().equals(filename))
                 buffer[i].valid(false);
     }
-
 
     //if the block exist and it's valid, return this block else return a empty block
     public int read_block_from_disk(String filename, int ofs) {
