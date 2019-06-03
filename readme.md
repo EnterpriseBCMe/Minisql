@@ -278,7 +278,7 @@
 
 //project功能函数，给定表名，查询结果和投影属性名称，返回投影后的记录结果
 //投影属性名称顺序没有要求，查询结果的属性顺序必须和创建表时的属性一致
-+ public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName)
++ public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName)；
 
 //保存函数，将当前操作的记录保存到磁盘中
 //程序结束前调用，其将内部缓冲区的块写入磁盘中
