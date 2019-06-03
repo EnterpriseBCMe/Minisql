@@ -11,4 +11,10 @@ public class Attribute {
         this.type = new FieldType(type, length);
         this.isUnique = isUnique;
     }
+
+    public Attribute(String attributeName, String type, boolean isUnique) {
+        this.attributeName = attributeName;
+        this.type = new FieldType(type);
+        this.isUnique = isUnique;
+    }
 }
