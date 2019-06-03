@@ -7,8 +7,10 @@
 | 2019-05-18 | ycj  | 新建项目框架，约定命名、注释规范 |
 | 2019-05-30 | ycj  | Buffer&BufferManager实现|
 | 2019-06-01 | yrj  | Address&FieldType&TableRow&Condition类实现|
-| 2019-06-01 | ycj | BufferManager类增加了make_invalid接口，修改了read_block_from_disk函数 |
-| 2019-06-03 | stl | CatalogManager&Attribute&Index&Table实现&Main test函数&Condition修改 |
+| 2019-06-01 | ycj  | BufferManager类增加了make_invalid接口，修改了read_block_from_disk函数 |
+| 2019-06-03 | stl  | CatalogManager&Attribute&Index&Table实现&Main test函数&Condition修改 |
+| 2019-06-04 | yrj  | Condition&TableRow类修改，RecordManager实现，TestRecord测试程序上传 |
+
 
 ------------------------------
 
@@ -243,3 +245,44 @@
 + public static boolean drop_index(String indexName)；
 ```
 
+-----------------------
+
+### Record Manager 模块接口说明
+
+```java
+//创建给定表名的表（新建文件），
+//若创建成功返回true，创建失败返回false
++ public static boolean create_table(String tableName)；
+
+//删除给定表名的表 (删除文件），
+//若删除成功返回true，删除失败返回false
++ public static boolean drop_table(String tableName)；
+
+//select功能函数，给定表名和条件，返回符合该条件的全部记录
+//返回记录的属性顺序和创建表时一致
++ public static Vector<TableRow> select(String tableName, Vector<Condition> conditions)；
+
+//insert功能函数，给定表名和待插入记录，返回该记录所插入的地址
+//插入记录中属性顺序必须和创建表时属性的顺序一致
++ public static Address insert(String tableName, TableRow data)；
+
+//delete功能函数，给定表名和条件，删除表中符合条件的记录，返回删除记录的个数
++ public static int delete(String tableName, Vector<Condition> conditions)；
+
+//select功能函数，给定一系列地址，返回地址对应的全部记录
+//返回记录的属性顺序和创建表时一致
++ public static Vector<TableRow> select(Vector<Address> address)；
+
+//delete功能函数，给定一系列地址，删除地址对应的记录，返回删除记录的个数
++ public static int delete(Vector<Address> address)；
+
+//project功能函数，给定表名，查询结果和投影属性名称，返回投影后的记录结果
+//投影属性名称顺序没有要求，查询结果的属性顺序必须和创建表时的属性一致
++ public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName)
+
+//保存函数，将当前操作的记录保存到磁盘中
+//程序结束前调用，其将内部缓冲区的块写入磁盘中
++ public static void store_record()；
+```
+
+-----------------------
