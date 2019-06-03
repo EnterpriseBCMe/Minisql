@@ -12,7 +12,7 @@ public class RecordManager  {
 	public static boolean create_table(String tableName) {
 		try {
 			File file =new File(tableName);
-			if(!file.createNewFile()) //file alrebady exists
+			if(!file.createNewFile()) //file already exists
 				return false;
 			Block block = bufferManager.read_block_from_disk_quote(tableName,0); //read first block from file
 			block.write_integer(0, -1); //write to free list head, -1 means no free space
