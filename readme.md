@@ -8,6 +8,7 @@
 | 2019-05-30 | ycj  | Buffer&BufferManager实现|
 | 2019-06-01 | yrj  | Address&FieldType&TableRow&Condition类实现|
 | 2019-06-01 | ycj | BufferManager类增加了make_invalid接口，修改了read_block_from_disk函数 |
+| 2019-06-03 | stl | CatalogManager&Attribute&Index&Table实现&Main test函数&Condition修改 |
 
 ------------------------------
 
@@ -153,5 +154,92 @@
 + public String get_attribute_value(int index)； // 得到对应下标的属性值
 ```
 
-
 -----------------------
+
+### Attribute 类说明
+
+```java
++ public String attributeName;//字段名称
++ public FieldType type;//字段类型（引用FieldType类）
++ public boolean isUnique;//字段是否唯一（primaryKey）
+```
+
+### Index 类实现
+
+```java
++ public String indexName;//索引名称
++ public String tableName;//表名
++ public String attributeName;//索引所在的字段名
++ public int rootNum;//不用关心
++ public int blockNum = 0;//不用关心
+```
+
+### Table 类实现
+
+```java
++ public String tableName;//表名
++ public String primaryKey;//主键名
++ public Vector<Attribute> attributeVector;//以Vector形式存储的字段
++ public Vector<Index> indexVector;//以Vector形式存储的索引
++ public int indexNum;//索引数目
++ public int attributeNum;//字段数目
++ public int rowNum;//表中数据的行数（Catalog中不访问）
++ public int rowLength;//表中数据的总长度=字段长度之和
+```
+
+### Catalog Manager 模块接口说明
+
+```java
++ public static void initial_catalog() throws IOException;//初始化Catalog
++ public static void store_catalog() throws IOException；//将内存中所有信息的写入文件
++ public static void show_catalog()；//打印内存中table和index的信息
+
+ //通过表名获得Table类对象的信息 
++ public static Table get_table(String tableName)；
++ public static Index get_index(String indexName)；
++ public static String get_primary_key(String tableName)；
++ public static int get_row_length(String tableName)；
++ public static int get_attribute_num(String tableName)；
++ public static int get_row_num(String tableName)；
+
+//字段的判断函数，不一定有用
++ public static boolean is_primary_key(String tableName, String attributeName)；
++ public static boolean is_unique(String tableName, String attributeName)；
++ public static boolean is_index_key(String tableName, String attributeName)；
+
+//获得某个index或attribute的信息
++ public static String get_index_name(String tableName, String attributeName)；
++ public static String get_attribute_name(String tableName, int i)；
++ public static int get_attribute_index(String tableName, String attributeName)；
++ public static FieldType get_attribute_type(String tableName, String attributeName)；
+
+//获得attribute的length和type
++ public static int get_length(String tableName, String attributeName)；
++ public static String get_type(String tableName, int i)；
++ public static int get_length(String tableName, int i)；
+
+//tuple行数的修改
++ public static void add_row_num(String tableName)；
++ public static void delete_row_num(String tableName, int num)；
+
+//更换index
++ public static boolean update_index_table(String indexName, Index tmpIndex)；
+
+//检查attributeVector中是否有特定attribute
++ public static boolean is_attribute_exist(Vector<Attribute> attributeVector, String attributeName)；
+
+//***常用接口*****
+
+//建立表
++ public static boolean create_table(Table newTable)；
+
+//删除表
++ public static boolean drop_table(String tableName)；
+
+//建立索引
++ public static boolean create_index(Index newIndex)；
+
+//删除索引
++ public static boolean drop_index(String indexName)；
+```
+
