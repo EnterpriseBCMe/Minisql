@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Vector;
 
-public class RecordManager  {
+public class RecordManager {
 
 	private static BufferManager bufferManager = new BufferManager(); //buffer manager
 
@@ -14,9 +14,13 @@ public class RecordManager  {
 			File file =new File(tableName);
 			if(!file.createNewFile()) //file already exists
 				return false;
-			Block block = bufferManager.read_block_from_disk_quote(tableName,0); //read first block from file
-			block.write_integer(0, -1); //write to free list head, -1 means no free space
-			return true;
+			Block block = bufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
+			if(block == null) { //can't get from buffer
+				return false;
+			} else {
+				block.write_integer(0, -1); //write to free list head, -1 means no free space
+				return true;
+			}
 		} catch(Exception e) {
 			System.out.println(e.getMessage());
 			return false;
@@ -42,21 +46,27 @@ public class RecordManager  {
 		int processNum = 0; //number of processed tuples
 		int byteOffset = FieldType.INTSIZE; //byte offset in block, skip file header
 		int blockOffset = 0; //block offset in file
-		Block block = bufferManager.read_block_from_disk_quote(tableName,0); //get first block
-
 		Vector<TableRow> result = new Vector<>(); //table row result
+
+		Block block = bufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+		if(block == null) { //can't get from buffer
+			return result;
+		}
 
 		while(processNum < tupleNum) { //scan the block in sequence
 			if (byteOffset + storeLen >= Block.BLOCKSIZE) { //find next block
 				blockOffset++;
-				block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
 				byteOffset = 0; //reset byte offset
+				block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
+				if(block == null) { //can't get from buffer
+					return result;
+				}
 			}
 			if(block.read_integer(byteOffset) < 0) { //tuple is valid
 				int i;
-				TableRow newRow = get_tuple(tableName,block,byteOffset);
+				TableRow newRow = get_tuple(tableName, block, byteOffset);
 				for(i = 0;i < conditions.size();i++) { //check all conditions
-					if(!conditions.get(i).satisfy(tableName,newRow))
+					if(!conditions.get(i).satisfy(tableName, newRow))
 						break;
 				}
 				if(i == conditions.size()) { //if satisfy all conditions
@@ -72,8 +82,12 @@ public class RecordManager  {
 	//insert the tuple in given table, return the inserted address
 	public static Address insert(String tableName, TableRow data) {
 		int tupleNum = CatalogManager.get_row_num(tableName);
+		Block headBlock = bufferManager.read_block_from_disk_quote(tableName, 0); //get first block
 
-		Block headBlock = bufferManager.read_block_from_disk_quote(tableName,0); //get first block
+		if(headBlock == null) { //can't get from buffer
+			return new Address(tableName, -1, 0);
+		}
+
 		headBlock.lock(true); //lock first block for later write
 
 		int freeOffset = headBlock.read_integer(0); //read the first free offset in file header
@@ -87,16 +101,20 @@ public class RecordManager  {
 
 		int blockOffset = get_block_offset(tableName, tupleOffset); //block offset of tuple
 		int byteOffset = get_byte_offset(tableName, tupleOffset); //byte offset of tuple
-		Block insertBlock = bufferManager.read_block_from_disk_quote(tableName,blockOffset); //read the block for inserting
+		Block insertBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read the block for inserting
+
+		if(insertBlock == null) { //can't get from buffer
+			return new Address(tableName, -1, 0);
+		}
 
 		if(freeOffset >= 0) { //if head has free offset, update it
 			freeOffset = insertBlock.read_integer(byteOffset + 1); //get next free address
-			headBlock.write_integer(0,freeOffset); //write new free offset to head
+			headBlock.write_integer(0, freeOffset); //write new free offset to head
 		}
 
 		headBlock.lock(false); //unlock head block
-		write_tuple(tableName,data,insertBlock,byteOffset); //write data to insert block
-		return new Address(tableName,blockOffset,byteOffset); //return insert address*/
+		write_tuple(tableName, data, insertBlock, byteOffset); //write data to insert block
+		return new Address(tableName, blockOffset, byteOffset); //return insert address*/
 	}
 
 	//delete the condition-satisfied tuples from given table, return number of deleted tuples
@@ -109,27 +127,35 @@ public class RecordManager  {
 		int blockOffset = 0; //block offset in file
 		int deleteNum = 0; // number of delete tuples
 
-		Block headBlock = bufferManager.read_block_from_disk_quote(tableName,0); //get first block
+		Block headBlock = bufferManager.read_block_from_disk_quote(tableName, 0); //get first block
 		Block laterBlock = headBlock; //block for sequently scanning
+
+		if(headBlock == null) { //can't get from buffer
+			return 0;
+		}
+
 		headBlock.lock(true); //lock head block for free list update
 
 		for(int currentNum = 0;processNum < tupleNum; currentNum++) { //scan the block in sequence
 			if (byteOffset + storeLen >= Block.BLOCKSIZE) { //byte overflow, find next block
 				blockOffset++;
-				laterBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
 				byteOffset = 0; //reset byte offset
+				laterBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
+				if(laterBlock == null) { //can't get from buffer
+					return deleteNum;
+				}
 			}
 			if(laterBlock.read_integer(byteOffset) < 0) { //tuple is valid
 				int i;
-				TableRow newRow = get_tuple(tableName,laterBlock,byteOffset); //get current tuple
+				TableRow newRow = get_tuple(tableName, laterBlock, byteOffset); //get current tuple
 				for(i = 0;i < conditions.size();i++) { //check all conditions
-					if(!conditions.get(i).satisfy(tableName,newRow))
+					if(!conditions.get(i).satisfy(tableName, newRow))
 						break;
 				}
 				if(i == conditions.size()) { //if satisfy all conditions, delete the tuple
-					laterBlock.write_integer(byteOffset,0); //set vaild byte to 0
+					laterBlock.write_integer(byteOffset, 0); //set vaild byte to 0
 					laterBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free offset
-					headBlock.write_integer(0,currentNum); //write deleted offset to head pointer
+					headBlock.write_integer(0, currentNum); //write deleted offset to head pointer
 					deleteNum++;
 				}
 				processNum++; //update processed tuple number
@@ -157,9 +183,12 @@ public class RecordManager  {
 			blockOffset = address.get(i).get_block_offset(); //read block and byte offset
 			byteOffset = address.get(i).get_byte_offset();
 			if(i == 0 || blockOffset != blockOffsetPre) { // not in same block as previous
-				block = bufferManager.read_block_from_disk_quote(tableName,blockOffset); // read a new block
+				block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+				if(block == null) {
+					return result;
+				}
 			}
-			result.add(get_tuple(tableName,block,byteOffset)); //add tuple
+			result.add(get_tuple(tableName, block, byteOffset)); //add tuple
 			blockOffsetPre = blockOffset;
 		}
 		return result;
@@ -178,8 +207,12 @@ public class RecordManager  {
 		int byteOffset = 0; //current byte offset
 		int tupleOffset = 0; //tuple offset in file
 
-		Block headBlock = bufferManager.read_block_from_disk_quote(tableName,0); //get head block
+		Block headBlock = bufferManager.read_block_from_disk_quote(tableName, 0); //get head block
 		Block deleteBlock = null;
+
+		if(headBlock == null) { //can't get from buffer
+			return 0;
+		}
 
 		headBlock.lock(true); //lock head block for free list update
 
@@ -190,7 +223,10 @@ public class RecordManager  {
 			tupleOffset = get_tuple_offset(tableName, blockOffset, byteOffset);
 
 			if(i == 0 || blockOffset != blockOffsetPre) { // not in same block
-				deleteBlock = bufferManager.read_block_from_disk_quote(tableName,blockOffset); // read a new block
+				deleteBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+				if(deleteBlock == null) { //can't get from buffer
+					return deleteNum;
+				}
 			}
 
 			if (deleteBlock.read_integer(byteOffset) < 0) { //tuple is valid
