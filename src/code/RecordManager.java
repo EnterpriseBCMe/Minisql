@@ -114,7 +114,7 @@ public class RecordManager {
 
         headBlock.lock(false); //unlock head block
         write_tuple(tableName, data, insertBlock, byteOffset); //write data to insert block
-        return new Address(tableName, blockOffset, byteOffset); //return insert address*/
+        return new Address(tableName, blockOffset, byteOffset); //return insert address
     }
 
     //delete the condition-satisfied tuples from given table, return number of deleted tuples
