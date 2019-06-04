@@ -22,7 +22,7 @@ public class FieldType {
         this.length = 1;
     }
 
-    FieldType(NumType type,int length) {
+    FieldType(NumType type, int length) {
         this.type = type; //set type and length ( for char )
         this.length = length;
     }
@@ -30,7 +30,7 @@ public class FieldType {
     NumType get_type() {
         return this.type;
     }
-    
+
     int get_length() {
         switch(this.type) {
             case CHAR:
