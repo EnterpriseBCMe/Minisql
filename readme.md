@@ -250,11 +250,11 @@
 ### Record Manager 模块接口说明
 
 ```java
-//创建给定表名的表（新建文件），
+//创建给定表名的表（新建文件）
 //若创建成功返回true，创建失败返回false
 + public static boolean create_table(String tableName)；
 
-//删除给定表名的表 (删除文件），
+//删除给定表名的表 (删除文件）
 //若删除成功返回true，删除失败返回false
 + public static boolean drop_table(String tableName)；
 
@@ -264,18 +264,24 @@
 
 //insert功能函数，给定表名和待插入记录，返回该记录所插入的地址
 //插入记录中属性顺序必须和创建表时属性的顺序一致
+//若插入失败，返回同文件名，blockOffset = -1, byteOffset = 0 的地址
+//内部暂时没有调用CatalogManager来增加记录数，需外部手动调用，若需要可以在内部放置
 + public static Address insert(String tableName, TableRow data)；
 
 //delete功能函数，给定表名和条件，删除表中符合条件的记录，返回删除记录的个数
+//内部暂时没有调用CatalogManager来删除记录数，需外部手动调用，若需要可以在内部放置
 + public static int delete(String tableName, Vector<Condition> conditions)；
 
 //select功能函数，给定一系列地址，返回地址对应的全部记录
 //返回记录的属性顺序和创建表时一致
 //所有地址必须在同一文件内
+//若地址对应的记录不存在，则不会加入结果中
 + public static Vector<TableRow> select(Vector<Address> address)；
 
 //delete功能函数，给定一系列地址，删除地址对应的记录，返回删除记录的个数
 //所有地址必须在同一文件内
+//内部暂时没有调用CatalogManager来删除记录数，需外部手动调用，若需要可以在内部放置
+//若地址对应的记录不存在，则不会计入删除数
 + public static int delete(Vector<Address> address)；
 
 //project功能函数，给定表名，查询结果和投影属性名称，返回投影后的记录结果
