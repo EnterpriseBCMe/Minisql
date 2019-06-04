@@ -47,5 +47,5 @@ public class Address implements Comparable<Address>{
 	}
 	void set_byte_offset(int byteOffset) {
 		this.byteOffset = byteOffset;
-	}
+	} 
 }
