@@ -1,6 +1,6 @@
 package code;
 
-public class Address implements Comparable<Address>{
+public class Address implements Comparable<Address> {
     private String fileName; //file name
     private int blockOffset; //block offset in file
     private int byteOffset;  //byte offset in block
