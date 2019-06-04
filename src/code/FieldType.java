@@ -1,5 +1,8 @@
 package code;
 
+enum NumType {
+    CHAR,INT,FLOAT
+}
 
 public class FieldType {
 
@@ -7,39 +10,41 @@ public class FieldType {
     public static final int INTSIZE = 4;   //4 bytes for an integer
     public static final int FLOATSIZE = 4; //4 bytes for a float number
 
-    private String type; // type of number
-    private int length; // length of char type
+    private NumType type; //type of number
+    private int length; //length of char type
 
     FieldType() {
         //do noting
     }
 
-    FieldType(String type) {
+    FieldType(NumType type) {
         this.type = type; //set type ( for integer and float number )
         this.length = 1;
     }
 
-    FieldType(String type,int length) {
+    FieldType(NumType type,int length) {
         this.type = type; //set type and length ( for char )
         this.length = length;
     }
 
-    String get_type() {
+    NumType get_type() {
         return this.type;
     }
+    
     int get_length() {
-        if(this.type.compareTo("char") == 0) { //char type
-            return this.length * CHARSIZE;
-        } else if(this.type.compareTo("int") == 0) { //integer type
-            return INTSIZE;
-        } else if(this.type.compareTo("float") == 0) { //float type
-            return FLOATSIZE;
-        } else { //undefined type
-            return 0;
+        switch(this.type) {
+            case CHAR:
+                return this.length * CHARSIZE;
+            case INT:
+                return INTSIZE;
+            case FLOAT:
+                return FLOATSIZE;
+            default: //undefined type
+                return 0;
         }
     }
 
-    void set_type(String type) {
+    void set_type(NumType type) {
         this.type = type;
     }
     void set_length(int length) {
