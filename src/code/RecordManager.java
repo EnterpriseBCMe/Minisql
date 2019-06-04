@@ -31,7 +31,7 @@ public class RecordManager {
 	public static boolean drop_table(String tableName) {
 		File file =new File(tableName);
 		if(file.delete()) { //delete the file
-			bufferManager.make_invalid(tableName); // set the block invalid
+			bufferManager.make_invalid(tableName); //set the block invalid
 			return true;
 		} else {
 			return false;
@@ -182,8 +182,8 @@ public class RecordManager {
 		for(int i = 0;i < address.size(); i++) { //for each later address
 			blockOffset = address.get(i).get_block_offset(); //read block and byte offset
 			byteOffset = address.get(i).get_byte_offset();
-			if(i == 0 || blockOffset != blockOffsetPre) { // not in same block as previous
-				block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+			if(i == 0 || blockOffset != blockOffsetPre) { //not in same block as previous
+				block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read a new block
 				if(block == null) {
 					return result;
 				}
@@ -222,8 +222,8 @@ public class RecordManager {
 			byteOffset = address.get(i).get_byte_offset();
 			tupleOffset = get_tuple_offset(tableName, blockOffset, byteOffset);
 
-			if(i == 0 || blockOffset != blockOffsetPre) { // not in same block
-				deleteBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+			if(i == 0 || blockOffset != blockOffsetPre) { //not in same block
+				deleteBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read a new block
 				if(deleteBlock == null) { //can't get from buffer
 					return deleteNum;
 				}
