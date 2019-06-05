@@ -354,59 +354,36 @@ public class CatalogManager {
     }
 
     //Interface
-    public static boolean create_table(Table newTable) {
-        try {
-            tables.put(newTable.tableName, newTable);
-            //indexes.put(newTable.indexes.firstElement().indexName, newTable.indexes.firstElement());
-            return true;
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-            return false;
-        }
-
+    public static boolean create_table(Table newTable) throws NullPointerException{
+        tables.put(newTable.tableName, newTable);
+        //indexes.put(newTable.indexes.firstElement().indexName, newTable.indexes.firstElement());
+        return true;
     }
 
-    public static boolean drop_table(String tableName) {
-        try {
-            Table tmpTable = tables.get(tableName);
-            for (int i = 0; i < tmpTable.indexVector.size(); i++) {
-                indexes.remove(tmpTable.indexVector.get(i).indexName);
-            }
-            tables.remove(tableName);
-            return true;
-        } catch (NullPointerException e) {
-            System.out.println("Error: null table. " + e.getMessage());
-            return false;
+    public static boolean drop_table(String tableName) throws NullPointerException{
+        Table tmpTable = tables.get(tableName);
+        for (int i = 0; i < tmpTable.indexVector.size(); i++) {
+            indexes.remove(tmpTable.indexVector.get(i).indexName);
         }
+        tables.remove(tableName);
+        return true;
     }
 
-    public static boolean create_index(Index newIndex) {
-        try {
-            Table tmpTable = get_table(newIndex.tableName);
-            tmpTable.indexVector.addElement(newIndex);
-            tmpTable.indexNum = tmpTable.indexVector.size();
-            indexes.put(newIndex.indexName, newIndex);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+    public static boolean create_index(Index newIndex) throws NullPointerException{
+        Table tmpTable = get_table(newIndex.tableName);
+        tmpTable.indexVector.addElement(newIndex);
+        tmpTable.indexNum = tmpTable.indexVector.size();
+        indexes.put(newIndex.indexName, newIndex);
+        return true;
     }
 
-    public static boolean drop_index(String indexName) {
-        try {
-            Index tmpIndex = get_index(indexName);
-            Table tmpTable = get_table(tmpIndex.tableName);
-            tmpTable.indexVector.remove(tmpIndex);
-            tmpTable.indexNum = tmpTable.indexVector.size();
-            indexes.remove(indexName);
-            return true;
-        } catch (NullPointerException e) {
-            //e.printStackTrace();
-            System.out.println("Error: null index. " + e.getMessage());
-            return false;
-        }
-
+    public static boolean drop_index(String indexName) throws NullPointerException{
+        Index tmpIndex = get_index(indexName);
+        Table tmpTable = get_table(tmpIndex.tableName);
+        tmpTable.indexVector.remove(tmpIndex);
+        tmpTable.indexNum = tmpTable.indexVector.size();
+        indexes.remove(indexName);
+        return true;
     }
 
 }
