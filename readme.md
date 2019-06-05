@@ -311,7 +311,7 @@
 + public V find(K key) throws IllegalArgumentException;
 
 //插入索引key及其对应的值value，key已存在则抛出异常
-+ public void insert(K key, V value) throws IllegalArgumentException；
++ public void insert(K key, V value) throws IllegalArgumentException;
 
 //删除索引key及其对应的值，删除失败则抛出异常
 + public void delete(K key) throws IllegalArgumentException;
