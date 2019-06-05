@@ -1,4 +1,5 @@
 import BUFFERMANAGER.BufferManager;
+import CATALOGMANAGER.NumType;
 import INDEXMANAGER.Index;
 import CATALOGMANAGER.Attribute;
 import CATALOGMANAGER.CatalogManager;
@@ -56,9 +57,9 @@ public class Main {
     private static void catalog_unit_test1() {
         try {
             CatalogManager.initial_catalog();
-            Attribute tmpAttribute1 = new Attribute("id", "integer", true);
-            Attribute tmpAttribute2 = new Attribute("name", "char", 12, true);
-            Attribute tmpAttribute3 = new Attribute("category", "char", 20, true);
+            Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("int"), true);
+            Attribute tmpAttribute2 = new Attribute("name", NumType.valueOf("char"), 12, true);
+            Attribute tmpAttribute3 = new Attribute("category", NumType.valueOf("char"), 20, true);
             Vector<Attribute> tmpAttributeVector = new Vector<>();
             tmpAttributeVector.addElement(tmpAttribute1);
             tmpAttributeVector.addElement(tmpAttribute2);

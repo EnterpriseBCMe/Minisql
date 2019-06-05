@@ -1,8 +1,5 @@
 package CATALOGMANAGER;
 
-enum NumType {
-    CHAR,INT,FLOAT
-}
 
 public class FieldType {
 

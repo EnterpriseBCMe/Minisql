@@ -1,9 +1,6 @@
 package test;
 
-import CATALOGMANAGER.Address;
-import CATALOGMANAGER.CatalogManager;
-import CATALOGMANAGER.Attribute;
-import CATALOGMANAGER.Table;
+import CATALOGMANAGER.*;
 import RECORDMANAGER.Condition;
 import RECORDMANAGER.RecordManager;
 import RECORDMANAGER.TableRow;
@@ -20,11 +17,11 @@ public class TestRecord {
 
         Vector<Attribute> attributes = new Vector<>(); //create table
         Attribute attribute;
-        attribute = new Attribute("id", "int", true);
+        attribute = new Attribute("id", NumType.valueOf("int"), true);
         attributes.add(attribute);
-        attribute = new Attribute("name", "char", 20, false);
+        attribute = new Attribute("name", NumType.valueOf("char"), 20, false);
         attributes.add(attribute);
-        attribute = new Attribute("price", "float", false);
+        attribute = new Attribute("price", NumType.valueOf("float"), false);
         attributes.add(attribute);
 
         Table table = new Table("Goods", "id", attributes);

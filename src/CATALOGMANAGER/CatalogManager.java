@@ -41,13 +41,15 @@ public class CatalogManager {
             tmpAttributeNum = dis.readInt();
             for (int i = 0; i < tmpAttributeNum; i++) {
                 String tmpAttributeName, tmpType;
+                NumType tmpNumType;
                 int tmpLength;
                 boolean tmpIsUnique;
                 tmpAttributeName = dis.readUTF();
                 tmpType = dis.readUTF();
                 tmpLength = dis.readInt();
                 tmpIsUnique = dis.readBoolean();
-                tmpAttributeVector.addElement(new Attribute(tmpAttributeName, tmpType, tmpLength, tmpIsUnique));
+                tmpNumType = NumType.valueOf(tmpType);
+                tmpAttributeVector.addElement(new Attribute(tmpAttributeName, tmpNumType, tmpLength, tmpIsUnique));
             }
             tables.put(tmpTableName, new Table(tmpTableName, tmpPrimaryKey, tmpAttributeVector, tmpIndexVector, tmpRowNum));
         }
@@ -99,7 +101,7 @@ public class CatalogManager {
             for (int i = 0; i < tmpTable.attributeNum; i++) {
                 Attribute tmpAttribute = tmpTable.attributeVector.get(i);
                 dos.writeUTF(tmpAttribute.attributeName);
-                dos.writeUTF(tmpAttribute.type.get_type());
+                dos.writeUTF(tmpAttribute.type.get_type().name());
                 dos.writeInt(tmpAttribute.type.get_length());
                 dos.writeBoolean(tmpAttribute.isUnique);
             }
@@ -322,7 +324,7 @@ public class CatalogManager {
 
     public static String get_type(String tableName, int i) {
         //Table tmpTable=tables.get(tableName);
-        return tables.get(tableName).attributeVector.get(i).type.get_type();
+        return tables.get(tableName).attributeVector.get(i).type.get_type().name();
     }
 
     public static int get_length(String tableName, int i) {
