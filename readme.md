@@ -10,6 +10,7 @@
 | 2019-06-01 | ycj  | BufferManager类增加了make_invalid接口，修改了read_block_from_disk函数 |
 | 2019-06-03 | stl  | CatalogManager&Attribute&Index&Table实现&Main test函数&Condition修改 |
 | 2019-06-04 | yrj  | Condition&TableRow类修改，RecordManager实现，TestRecord测试程序上传 |
+| 2019-06-05 | zjs  | B+树类BPTree实现 |
 
 
 ------------------------------
@@ -291,6 +292,47 @@
 //保存函数，将当前操作的记录保存到磁盘中
 //程序结束前调用，其将内部缓冲区的块写入磁盘中
 + public static void store_record()；
+```
+
+-----------------------
+
+### BPTree接口说明
+
+```java
+//类声明
+//K为索引key的类型，V为值value的类型
++ public class BPTree<K extends Comparable<? super K>, V> {
+
+//构造函数
+//order为节点中key的最大个数，则中间节点中子节点的最大个数为order + 1，叶子节点中value的最大个数也为order
++ public BPTree(int order);
+
+//返回索引key对应的值value，找不到则抛出异常
++ public V find(K key) throws IllegalArgumentException;
+
+//插入索引key及其对应的值value，key已存在则抛出异常
++ public void insert(K key, V value) throws IllegalArgumentException；
+
+//删除索引key及其对应的值，删除失败则抛出异常
++ public void delete(K key) throws IllegalArgumentException;
+
+//更新索引key对应的值为value，找不到则抛出异常
++ public void update(K key, V value) throws IllegalArgumentException;
+
+//前序遍历打印，用于debug
++ public void print();
+
+//检查树结构是否符合B+树的规则，用于debug
++ public void check_structure() throws RuntimeException;
+
+//节点抽象类声明
++ static abstract class Node<K extends Comparable<? super K>, V>;
+//中间结点类声明
++ static class InternalNode<K extends Comparable<? super K>, V> extends Node<K, V>;
+//叶节点类声明
++ static class LeafNode<K extends Comparable<? super K>, V> extends Node<K, V>;
+
+}
 ```
 
 -----------------------
