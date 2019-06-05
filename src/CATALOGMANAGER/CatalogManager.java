@@ -1,4 +1,6 @@
-package code;
+package CATALOGMANAGER;
+
+import INDEXMANAGER.Index;
 
 import java.io.*;
 import java.util.*;

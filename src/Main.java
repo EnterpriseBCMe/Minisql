@@ -1,4 +1,8 @@
-package code;
+import BUFFERMANAGER.BufferManager;
+import INDEXMANAGER.Index;
+import CATALOGMANAGER.Attribute;
+import CATALOGMANAGER.CatalogManager;
+import CATALOGMANAGER.Table;
 
 import java.util.Vector;
 

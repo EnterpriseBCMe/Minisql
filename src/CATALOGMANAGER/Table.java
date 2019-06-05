@@ -1,4 +1,7 @@
-package code;
+package CATALOGMANAGER;
+
+import INDEXMANAGER.Index;
+import CATALOGMANAGER.Attribute;
 
 import java.util.Vector;
 

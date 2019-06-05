@@ -1,4 +1,4 @@
-package code;
+package BUFFERMANAGER;
 
 import java.util.Arrays;
 

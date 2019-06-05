@@ -1,5 +1,4 @@
-package code;
-
+package BUFFERMANAGER;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.Arrays;
@@ -10,7 +9,7 @@ public class BufferManager {
     private static final int EOF = -1; //none-exist num
     public Block[] buffer = new Block[MAXBLOCKNUM];  //buffer
 
-    BufferManager() {
+    public BufferManager() {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             buffer[i] = new Block();  //allocate new memory for blocks
     }

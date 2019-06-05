@@ -1,4 +1,4 @@
-package code;
+package CATALOGMANAGER;
 
 enum NumType {
     CHAR,INT,FLOAT

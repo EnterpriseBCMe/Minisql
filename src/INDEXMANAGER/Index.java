@@ -1,4 +1,4 @@
-package code;
+package INDEXMANAGER;
 
 public class Index {
 

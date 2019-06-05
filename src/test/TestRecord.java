@@ -1,6 +1,13 @@
 package test;
 
-import code.*;
+import CATALOGMANAGER.Address;
+import CATALOGMANAGER.CatalogManager;
+import CATALOGMANAGER.Attribute;
+import CATALOGMANAGER.Table;
+import RECORDMANAGER.Condition;
+import RECORDMANAGER.RecordManager;
+import RECORDMANAGER.TableRow;
+
 import java.util.Vector;
 
 public class TestRecord {

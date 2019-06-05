@@ -1,4 +1,6 @@
-package code;
+package RECORDMANAGER;
+
+import CATALOGMANAGER.CatalogManager;
 
 public class Condition {
     private String name;  //attribute name in condition
