@@ -16,13 +16,12 @@ public class Main {
     }
 
     public static void buffer_unit_test() {
+        String buffer_test_file_name = "buffer_test";
         try {
             BufferManager m = new BufferManager();
-            int bid = m.read_block_from_disk("hello.txt", 0);
+            m.test_interface();
+            int bid = m.read_block_from_disk(buffer_test_file_name, 15);
             buffer_print(m,bid);
-            bid = m.read_block_from_disk("hello.txt", 15);
-            buffer_print(m,bid);
-            //m.test_interface();
         } catch (Exception e) {
             e.printStackTrace();
         }

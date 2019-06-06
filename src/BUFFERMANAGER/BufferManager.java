@@ -18,8 +18,8 @@ public class BufferManager {
         Block b = new Block();
         b.write_integer(1200, 2245);
         b.write_float(76, (float) 2232.14);
-        b.write_string(492, "22httnb!");
-        b.set_filename("hello.txt");
+        b.write_string(492, "!!!httnb!");
+        b.set_filename("buffer_test");
         b.set_block_offset(15);
         buffer[1] = b;
         write_block_to_disk(1);
@@ -44,8 +44,13 @@ public class BufferManager {
                     && buffer[i].get_block_offset() == ofs) return i;
         File file = new File(filename); //block does not found
         int bid = get_free_block_id();
-        if (bid == EOF || !file.exists()) return EOF; //there are no free blocks
-        if (!read_block_from_disk(filename, ofs, bid)) return EOF;
+        try {
+            if (bid == EOF) return EOF; //there are no free blocks
+            if (!file.exists()) file.createNewFile();  //if not exists such file
+            if (!read_block_from_disk(filename, ofs, bid)) return EOF;
+        } catch (Exception e) {
+            return EOF;
+        }
         return bid;
     }
 

@@ -1,6 +1,5 @@
 package CATALOGMANAGER;
 
-
 public class FieldType {
 
     public static final int CHARSIZE = 1;  //1 byte for a char

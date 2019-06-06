@@ -12,8 +12,6 @@ public class Block {
     private boolean isLocked = false; //true if the block is pinned
     private String filename;  //record where the block from
     private byte[] blockData = new byte[BLOCKSIZE];  //allocate 4KB memory for 1 block
-    //public Block next = null;
-    //public Block previous = null;
 
     public Block() {
         //do noting
@@ -133,7 +131,6 @@ public class Block {
     public void set_filename(String fname) {
         this.filename = fname;
     }
-
 
     public void set_block_offset(int ofs) {
         this.blockOffset = ofs;

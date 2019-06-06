@@ -43,20 +43,21 @@ public class Condition {
         } else if (type.equals("int")) { //integer type
             int cmpObject = Integer.parseInt(data.get_attribute_value(index));
             int cmpValue = Integer.parseInt(this.value);
-            if (this.operator.equals("=")) {
-                return cmpObject == cmpValue;
-            } else if (this.operator.equals("<>")) {
-                return cmpObject != cmpValue;
-            } else if (this.operator.equals(">")) {
-                return cmpObject > cmpValue;
-            } else if (this.operator.equals("<")) {
-                return cmpObject < cmpValue;
-            } else if (this.operator.equals(">=")) {
-                return cmpObject >= cmpValue;
-            } else if (this.operator.equals("<=")) {
-                return cmpObject <= cmpValue;
-            } else { //undefined operator
-                return false;
+            switch (this.operator) {
+                case "=":
+                    return cmpObject == cmpValue;
+                case "<>":
+                    return cmpObject != cmpValue;
+                case ">":
+                    return cmpObject > cmpValue;
+                case "<":
+                    return cmpObject < cmpValue;
+                case ">=":
+                    return cmpObject >= cmpValue;
+                case "<=":
+                    return cmpObject <= cmpValue;
+                default:
+                    return false;
             }
         } else if (type.equals("float")) { //float type
             float cmpObject = Float.parseFloat(data.get_attribute_value(index));
