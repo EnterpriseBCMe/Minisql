@@ -1,4 +1,4 @@
-# Minisql
+﻿# Minisql
 
 ### Update Info 更新信息
 
@@ -12,6 +12,8 @@
 | 2019-06-04 | yrj  | Condition&TableRow类修改，RecordManager实现，TestRecord测试程序上传 |
 | 2019-06-05 | zjs  | B+树类BPTree实现 |
 | 2019-06-06 | stl  | 修复enum语法错误，将部分print改为throw |
+| 2019-06-06 | ycj  | 修改BufferManager中方法为static |
+| 2019-06-06 | ycj  | 增加interpreter & API 文件 |
 
 ------------------------------
 
