@@ -7,37 +7,37 @@ public class BufferManager {
 
     private static final int MAXBLOCKNUM = 50;  //maximum block numbers
     private static final int EOF = -1; //none-exist num
-    public Block[] buffer = new Block[MAXBLOCKNUM];  //buffer
+    public static Block[] buffer = new Block[MAXBLOCKNUM];  //buffer
 
     public BufferManager() {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             buffer[i] = new Block();  //allocate new memory for blocks
     }
 
-    public void test_interface() {
+    public static void test_interface() {
         Block b = new Block();
         b.write_integer(1200, 2245);
         b.write_float(76, (float) 2232.14);
         b.write_string(492, "22httnb!");
         b.set_filename("hello.txt");
         b.set_block_offset(15);
-        this.buffer[1] = b;
+        buffer[1] = b;
         write_block_to_disk(1);
     }
 
-    public void destruct_buffer_manager() {
+    public static void destruct_buffer_manager() {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             if (buffer[i].valid()) write_block_to_disk(i); //write back to disk if it's valid
     }
 
-    public void make_invalid(String filename) {
+    public static void make_invalid(String filename) {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             if (buffer[i].get_filename() != null && buffer[i].get_filename().equals(filename))
                 buffer[i].valid(false);
     }
 
     //if the block exist and it's valid, return this block else return a empty block
-    public int read_block_from_disk(String filename, int ofs) {
+    public static int read_block_from_disk(String filename, int ofs) {
         int i, j;
         for (i = 0; i < MAXBLOCKNUM; i++)  //find the target block
             if (buffer[i].valid() && buffer[i].get_filename().equals(filename)
@@ -50,7 +50,7 @@ public class BufferManager {
     }
 
     //if the block exist and it's valid, return this block else return a empty block
-    public Block read_block_from_disk_quote(String filename, int ofs) {
+    public static Block read_block_from_disk_quote(String filename, int ofs) {
         int i, j;
         for (i = 0; i < MAXBLOCKNUM; i++)  //find the target block
             if (buffer[i].valid() && buffer[i].get_filename().equals(filename)
@@ -66,7 +66,7 @@ public class BufferManager {
         }
     }
 
-    private boolean read_block_from_disk(String filename, int ofs, int bid) {
+    private static boolean read_block_from_disk(String filename, int ofs, int bid) {
         boolean flag = false;  //check whether operation is success
         byte[] data = new byte[Block.BLOCKSIZE];  //temporary data
         RandomAccessFile raf = null;  //to seek the position for data to write
@@ -99,7 +99,7 @@ public class BufferManager {
         return flag;
     }
 
-    private boolean write_block_to_disk(int bid) {
+    private static boolean write_block_to_disk(int bid) {
         if (!buffer[bid].dirty()) {  //block is valid but does not be modified
             buffer[bid].valid(false);  //only to make it invalid
             return true;
@@ -126,7 +126,7 @@ public class BufferManager {
         return true;
     }
 
-    private int get_free_block_id() {
+    private static int get_free_block_id() {
         int i;
         int index = EOF;  //-1 for none free block exist
         int mincount = 0x7FFFFFFF;  //initialize with maximum integer
