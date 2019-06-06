@@ -9,12 +9,11 @@ import java.util.LinkedHashMap;
 import java.util.Vector;
 
 
-
 public class IndexManager {
 
-    private static LinkedHashMap<String,BPTree<Integer, Address>> intTreeMap;
-    private static LinkedHashMap<String,BPTree<String, Address>> charTreeMap;
-    private static LinkedHashMap<String,BPTree<Float, Address>> floatTreeMap;
+    private static LinkedHashMap<String, BPTree<Integer, Address>> intTreeMap;
+    private static LinkedHashMap<String, BPTree<String, Address>> charTreeMap;
+    private static LinkedHashMap<String, BPTree<Float, Address>> floatTreeMap;
 
     public IndexManager() {
         //Nothing
@@ -48,21 +47,21 @@ public class IndexManager {
         BPTree<String, Address> charTree;
         BPTree<Float, Address> floatTree;
 
-        switch(type) {
-        case INT:
-            intTree = intTreeMap.get(idx.indexName);
-            return IndexManager.<Integer>satisfies_cond(intTree, cond.get_operator(), Integer.parseInt(cond.get_value()));
-        case FLOAT:
-            floatTree = floatTreeMap.get(idx.indexName);
-            return IndexManager.<Float>satisfies_cond(floatTree, cond.get_operator(), Float.parseFloat(cond.get_value()));
-        case CHAR:
-            charTree = charTreeMap.get(idx.indexName);
-            return IndexManager.<String>satisfies_cond(charTree, cond.get_operator(), cond.get_value());
+        switch (type) {
+            case INT:
+                intTree = intTreeMap.get(idx.indexName);
+                return IndexManager.<Integer>satisfies_cond(intTree, cond.get_operator(), Integer.parseInt(cond.get_value()));
+            case FLOAT:
+                floatTree = floatTreeMap.get(idx.indexName);
+                return IndexManager.<Float>satisfies_cond(floatTree, cond.get_operator(), Float.parseFloat(cond.get_value()));
+            case CHAR:
+                charTree = charTreeMap.get(idx.indexName);
+                return IndexManager.<String>satisfies_cond(charTree, cond.get_operator(), cond.get_value());
         }
         return null;
     }
 
-    public static void initial_index() throws IOException{
+    public static void initial_index() throws IOException {
         String fileName = "index_catalog";
         File file = new File(fileName);
         if (!file.exists()) return;
@@ -76,7 +75,7 @@ public class IndexManager {
             tmpAttributeName = dis.readUTF();
             tmpBlockNum = dis.readInt();
             tmpRootNum = dis.readInt();
-            create_index(new Index(tmpIndexName,tmpTableName,tmpAttributeName,tmpBlockNum,tmpRootNum));
+            create_index(new Index(tmpIndexName, tmpTableName, tmpAttributeName, tmpBlockNum, tmpRootNum));
         }
         dis.close();
     }
@@ -134,7 +133,7 @@ public class IndexManager {
                     }
                     byteOffset += storeLen; //update byte offset
                 }
-                intTreeMap.put(idx.indexName,intTree);
+                intTreeMap.put(idx.indexName, intTree);
                 break;
             case CHAR:
                 while (processNum < tupleNum) {
@@ -155,7 +154,7 @@ public class IndexManager {
                     }
                     byteOffset += storeLen; //update byte offset
                 }
-                charTreeMap.put(idx.indexName,charTree);
+                charTreeMap.put(idx.indexName, charTree);
                 break;
             case FLOAT:
                 while (processNum < tupleNum) {
@@ -176,7 +175,7 @@ public class IndexManager {
                     }
                     byteOffset += storeLen; //update byte offset
                 }
-                floatTreeMap.put(idx.indexName,floatTree);
+                floatTreeMap.put(idx.indexName, floatTree);
                 break;
         }
     }
@@ -219,6 +218,19 @@ public class IndexManager {
         String filename = idx.indexName + ".index";
         File file = new File(filename);
         if (file.exists()) file.delete();
+        int index = CatalogManager.get_attribute_index(idx.tableName, idx.attributeName);
+        NumType type = NumType.valueOf(CatalogManager.get_type(idx.tableName, index));
+        switch (type) {
+            case INT:
+                intTreeMap.remove(idx.indexName);
+                break;
+            case CHAR:
+                charTreeMap.remove(idx.indexName);
+                break;
+            case FLOAT:
+                floatTreeMap.remove(idx.indexName);
+                break;
+        }
         return true;
     }
 

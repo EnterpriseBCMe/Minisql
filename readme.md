@@ -16,7 +16,7 @@
 | 2019-06-06 | ycj  | 增加interpreter & API 文件 |
 | 2019-06-06 | ycj  | 修改整体架构 |
 | 2019-06-07 | zjs  | BPTree修改：增加不等值查找 |
-
+| 2019-06-07 | stl  | 增加IndexManager，修复BPTree |
 ------------------------------
 
 ### Coding Style 代码风格约定
@@ -349,3 +349,26 @@
 ```
 
 -----------------------
+
+### Index Manager 接口说明
+
+```java
+//select函数的判断，用于debug
++ public static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException;
+
+//select函数，根据指定的index和模块内的IndexMap进行搜索，若成功则返回Address Vector
++ public static Vector<Address> select(Index idx, Condition cond) throws IllegalArgumentException;
+
+//初始化IndexManager模块
++ public static void initial_index() throws IOException;
+
+//根据索引建立B+树并且将相关信息写入硬盘
++ public static boolean create_index(Index idx) throws IOException, IllegalArgumentException, RuntimeException;
+
+//建立B+树的函数，create_index内部调用
++ public static void build_index(Index idx) throws IllegalArgumentException, RuntimeException;
+
+//删除索引（文件）
++ public static boolean drop_index(Index idx);
+```
+
