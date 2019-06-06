@@ -311,9 +311,9 @@
 //order为节点中key的最大个数，则中间节点中子节点的最大个数为order + 1，叶子节点中value的最大个数也为order
 + public BPTree(int order);
 
-//等值查找
+//等值查找，此时vector应只有一个元素
 //返回索引key对应的值value，找不到则抛出异常
-+ public V find_eq(K key) throws IllegalArgumentException;
++ public Vector<V> find_eq(K key) throws IllegalArgumentException;
 
 //不等值查找
 + public Vector<V> find_neq(K key);     // <>
