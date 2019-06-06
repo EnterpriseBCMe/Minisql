@@ -1,4 +1,5 @@
 package INDEXMANAGER;
+import java.util.Vector;
 
 public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value type
     
@@ -8,8 +9,87 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         this.root = new LeafNode<>(order);
     }
 
-    public V find(K key) throws IllegalArgumentException {
+    public V find_eq(K key) throws IllegalArgumentException {
         return this.root.find(key);
+    }
+
+    public Vector<V> find_neq(K key) throws IllegalArgumentException {
+        Vector<V> res = new Vector<>();
+        if (this.root != null) {
+            LeafNode<K, V> leaf = this.root.get_first_leaf();
+            while (leaf != null) {
+                if (leaf.keys[leaf.cnt - 1].compareTo(key) < 0 || leaf.keys[0].compareTo(key) > 0) {
+                    for (int i = 0; i < leaf.cnt; i++) {
+                        res.add(leaf.values[i]);
+                    }
+                } else {
+                    int index = leaf.find_index(key);
+                    if (leaf.keys[index].equals(key)) {
+                        for (int i = 0; i < index; i++) {
+                            res.add(leaf.values[i]);
+                        }
+                        for (int i = index + 1; i < leaf.cnt; i++) {
+                            res.add(leaf.values[i]);
+                        }
+                    } else {
+                        for (int i = 0; i < leaf.cnt; i++) {
+                            res.add(leaf.values[i]);
+                        }
+                    }
+                }
+                leaf = leaf.next;
+            }
+        }
+        return res;
+    }
+
+    public Vector<V> find_leq(K key) {
+        Vector<V> res = this.find_less(key);
+        try {
+            V value = this.find_eq(key);
+            res.add(value);
+        } catch (IllegalArgumentException e) {
+            //do nothing
+        }
+        return res;
+    }
+
+    public Vector<V> find_less(K key) {
+        Vector<V> res = new Vector<>();
+        if (this.root != null) {
+            LeafNode<K, V> leaf = this.root.get_first_leaf();
+            while (leaf != null) {
+                if (leaf.keys[leaf.cnt - 1].compareTo(key) < 0) {
+                    for (int i = 0; i < leaf.cnt; i++) {
+                        res.add(leaf.values[i]);
+                    }
+                } else {
+                    int index = leaf.find_index(key);
+                    for (int i = 0; i < index; i++) {
+                        res.add(leaf.values[i]);
+                    }
+                    break;
+                }
+                leaf = leaf.next;
+            }
+        }
+        return res;
+    }
+
+    public Vector<V> find_geq(K key) {
+        Vector<V> res = new Vector<>();
+        try {
+            V value = this.find_eq(key);
+            res.add(value);
+        } catch (IllegalArgumentException e) {
+            //do nothing
+        }
+        res.addAll(this.find_greater(key));
+        return res;
+    }
+
+    public Vector<V> find_greater(K key) {
+        return this.root.find_greater(key);
     }
 
     public void insert(K key, V value) throws IllegalArgumentException {
@@ -52,6 +132,10 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         }
 
         public abstract V find(K key) throws IllegalArgumentException;
+
+        public abstract Vector<V> find_greater(K key);
+
+        public abstract LeafNode<K, V> get_first_leaf();
 
         public abstract Node<K, V> insert(K key, V value) throws IllegalArgumentException;
 
@@ -125,6 +209,24 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
             if (this.cnt == i && this.children[this.cnt] == null)
                 return null;
             return children[i].find(key);
+        }
+
+        @Override
+        public Vector<V> find_greater(K key) {
+            int i = 0;
+            while (i < this.cnt) {
+                if (key.compareTo(keys[i]) < 0)
+                    break;
+                i++;
+            }
+            if (this.cnt == i && this.children[this.cnt] == null)
+                return null;
+            return children[i].find_greater(key);
+        }
+
+        @Override
+        public LeafNode<K, V> get_first_leaf() {
+            return this.children[0].get_first_leaf();
         }
 
         @Override
@@ -486,6 +588,33 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                 }
             }
             throw new IllegalArgumentException(); //not found
+        }
+
+        @Override
+        public Vector<V> find_greater(K key) {
+            Vector<V> res = new Vector<>();
+            int index = this.find_index(key);
+            if (index < this.cnt) {
+                if (this.keys[index].equals(key)){
+                    index++;
+                }
+                for (int i = index; i < this.cnt; i++) {
+                    res.add(this.values[i]);
+                }
+            }
+            LeafNode<K, V> next = this.next;
+            while (next != null) {
+                for (int i = 0; i < next.cnt; i++) {
+                    res.add(next.values[i]);
+                }
+                next = next.next;
+            }
+            return res;
+        }
+
+        @Override
+        public LeafNode<K, V> get_first_leaf() {
+            return this;
         }
 
         @Override
