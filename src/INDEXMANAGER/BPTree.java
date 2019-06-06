@@ -9,8 +9,10 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         this.root = new LeafNode<>(order);
     }
 
-    public V find_eq(K key) throws IllegalArgumentException {
-        return this.root.find(key);
+    public Vector<V> find_eq(K key) throws IllegalArgumentException {
+        Vector<V> res = new Vector<>();
+        res.add(this.root.find(key));
+        return res;
     }
 
     public Vector<V> find_neq(K key) throws IllegalArgumentException {
