@@ -356,17 +356,19 @@
 //select函数的判断，用于debug
 + public static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException;
 
-//select函数，根据指定的index和模块内的IndexMap进行搜索，若成功则返回Address Vector
+//select函数，根据指定的index和模块内的IndexMap进行搜索，cond为索引列的查找条件，若成功则返回Address Vector（支持范围查找）
 + public static Vector<Address> select(Index idx, Condition cond) throws IllegalArgumentException;
+
+//删除、插入、更新操作，key为要删除、插入、更新的节点的键值（仅支持等值查找）
++ public static void delete(Index idx, String key) throws IllegalArgumentException;
++ public static void insert(Index idx, String key, Address value) throws IllegalArgumentException;
++ public static void update(Index idx, String key, Address value) throws IllegalArgumentException;
 
 //初始化IndexManager模块
 + public static void initial_index() throws IOException;
 
 //根据索引建立B+树并且将相关信息写入硬盘
 + public static boolean create_index(Index idx) throws IOException, IllegalArgumentException, RuntimeException;
-
-//建立B+树的函数，create_index内部调用
-+ public static void build_index(Index idx) throws IllegalArgumentException, RuntimeException;
 
 //删除索引（文件）
 + public static boolean drop_index(Index idx);
