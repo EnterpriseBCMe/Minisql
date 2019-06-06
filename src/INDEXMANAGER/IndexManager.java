@@ -19,24 +19,6 @@ public class IndexManager {
         //Nothing
     }
 
-    public static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException {
-        if (operator.equals("=")) {
-            return tree.find_eq(key);
-        } else if (operator.equals("<>")) {
-            return tree.find_neq(key);
-        } else if (operator.equals(">")) {
-            return tree.find_greater(key);
-        } else if (operator.equals("<")) {
-            return tree.find_less(key);
-        } else if (operator.equals(">=")) {
-            return tree.find_geq(key);
-        } else if (operator.equals("<=")) {
-            return tree.find_leq(key);
-        } else { //undefined operator
-            throw new IllegalArgumentException();
-        }
-    }
-
     public static Vector<Address> select(Index idx, Condition cond) throws IllegalArgumentException {
         String tableName = idx.tableName;
         String attributeName = idx.attributeName;
@@ -59,6 +41,84 @@ public class IndexManager {
                 return IndexManager.<String>satisfies_cond(charTree, cond.get_operator(), cond.get_value());
         }
         return null;
+    }
+
+    public static void delete(Index idx, String key) throws IllegalArgumentException {
+        String tableName = idx.tableName;
+        String attributeName = idx.attributeName;
+        int index = CatalogManager.get_attribute_index(tableName, attributeName);
+        NumType type = NumType.valueOf(CatalogManager.get_type(tableName, index));
+
+        BPTree<Integer, Address> intTree;
+        BPTree<String, Address> charTree;
+        BPTree<Float, Address> floatTree;
+
+        switch(type) {
+        case INT:
+            intTree = intTreeMap.get(idx.indexName);
+            intTree.delete(Integer.parseInt(key));
+            break;
+        case FLOAT:
+            floatTree = floatTreeMap.get(idx.indexName);
+            floatTree.delete(Float.parseFloat(key));
+            break;
+        case CHAR:
+            charTree = charTreeMap.get(idx.indexName);
+            charTree.delete(key);
+            break;
+        }
+    }
+
+    public static void insert(Index idx, String key, Address value) throws IllegalArgumentException {
+        String tableName = idx.tableName;
+        String attributeName = idx.attributeName;
+        int index = CatalogManager.get_attribute_index(tableName, attributeName);
+        NumType type = NumType.valueOf(CatalogManager.get_type(tableName, index));
+
+        BPTree<Integer, Address> intTree;
+        BPTree<String, Address> charTree;
+        BPTree<Float, Address> floatTree;
+
+        switch(type) {
+        case INT:
+            intTree = intTreeMap.get(idx.indexName);
+            intTree.insert(Integer.parseInt(key), value);
+            break;
+        case FLOAT:
+            floatTree = floatTreeMap.get(idx.indexName);
+            floatTree.insert(Float.parseFloat(key), value);
+            break;
+        case CHAR:
+            charTree = charTreeMap.get(idx.indexName);
+            charTree.insert(key, value);
+            break;
+        }
+    }
+
+    public static void update(Index idx, String key, Address value) throws IllegalArgumentException {
+        String tableName = idx.tableName;
+        String attributeName = idx.attributeName;
+        int index = CatalogManager.get_attribute_index(tableName, attributeName);
+        NumType type = NumType.valueOf(CatalogManager.get_type(tableName, index));
+
+        BPTree<Integer, Address> intTree;
+        BPTree<String, Address> charTree;
+        BPTree<Float, Address> floatTree;
+
+        switch(type) {
+        case INT:
+            intTree = intTreeMap.get(idx.indexName);
+            intTree.update(Integer.parseInt(key), value);
+            break;
+        case FLOAT:
+            floatTree = floatTreeMap.get(idx.indexName);
+            floatTree.update(Float.parseFloat(key), value);
+            break;
+        case CHAR:
+            charTree = charTreeMap.get(idx.indexName);
+            charTree.update(key, value);
+            break;
+        }
     }
 
     public static void initial_index() throws IOException {
@@ -96,7 +156,27 @@ public class IndexManager {
         return true; //文件读写失败返回false
     }
 
-    public static void build_index(Index idx) throws IllegalArgumentException, RuntimeException {
+    public static boolean drop_index(Index idx) {
+        String filename = idx.indexName + ".index";
+        File file = new File(filename);
+        if (file.exists()) file.delete();
+        int index = CatalogManager.get_attribute_index(idx.tableName, idx.attributeName);
+        NumType type = NumType.valueOf(CatalogManager.get_type(idx.tableName, index));
+        switch (type) {
+            case INT:
+                intTreeMap.remove(idx.indexName);
+                break;
+            case CHAR:
+                charTreeMap.remove(idx.indexName);
+                break;
+            case FLOAT:
+                floatTreeMap.remove(idx.indexName);
+                break;
+        }
+        return true;
+    }
+
+    private static void build_index(Index idx) throws IllegalArgumentException, RuntimeException {
         String tableName = idx.tableName;
         String attributeName = idx.attributeName;
         int tupleNum = CatalogManager.get_row_num(tableName);
@@ -179,6 +259,25 @@ public class IndexManager {
                 break;
         }
     }
+    
+    //returns a vector of addresses which satisfy the condition
+    private static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException {
+        if (operator.equals("=")) {
+            return tree.find_eq(key);
+        } else if (operator.equals("<>")) {
+            return tree.find_neq(key);
+        } else if (operator.equals(">")) {
+            return tree.find_greater(key);
+        } else if (operator.equals("<")) {
+            return tree.find_less(key);
+        } else if (operator.equals(">=")) {
+            return tree.find_geq(key);
+        } else if (operator.equals("<=")) {
+            return tree.find_leq(key);
+        } else { //undefined operator
+            throw new IllegalArgumentException();
+        }
+    }
 
     //get the length for one tuple to store in given table
     private static int get_store_length(String tableName) {
@@ -212,26 +311,6 @@ public class IndexManager {
             result.add_attribute_value(attributeValue); //add attribute to row
         }
         return result;
-    }
-
-    public static boolean drop_index(Index idx) {
-        String filename = idx.indexName + ".index";
-        File file = new File(filename);
-        if (file.exists()) file.delete();
-        int index = CatalogManager.get_attribute_index(idx.tableName, idx.attributeName);
-        NumType type = NumType.valueOf(CatalogManager.get_type(idx.tableName, index));
-        switch (type) {
-            case INT:
-                intTreeMap.remove(idx.indexName);
-                break;
-            case CHAR:
-                charTreeMap.remove(idx.indexName);
-                break;
-            case FLOAT:
-                floatTreeMap.remove(idx.indexName);
-                break;
-        }
-        return true;
     }
 
 }
