@@ -15,6 +15,7 @@
 | 2019-06-06 | ycj  | 修改BufferManager中方法为static |
 | 2019-06-06 | ycj  | 增加interpreter & API 文件 |
 | 2019-06-06 | ycj  | 修改整体架构 |
+| 2019-06-07 | zjs  | BPTree修改：增加不等值查找 |
 
 ------------------------------
 
@@ -310,8 +311,17 @@
 //order为节点中key的最大个数，则中间节点中子节点的最大个数为order + 1，叶子节点中value的最大个数也为order
 + public BPTree(int order);
 
+//等值查找
 //返回索引key对应的值value，找不到则抛出异常
-+ public V find(K key) throws IllegalArgumentException;
++ public V find_eq(K key) throws IllegalArgumentException;
+
+//不等值查找
++ public Vector<V> find_neq(K key);     // <>
++ public Vector<V> find_leq(K key);     // <=
++ public Vector<V> find_less(K key);    // <
++ public Vector<V> find_geq(K key);     // >=
++ public Vector<V> find_greater(K key); // >
+
 
 //插入索引key及其对应的值value，key已存在则抛出异常
 + public void insert(K key, V value) throws IllegalArgumentException;
