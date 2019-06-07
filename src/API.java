@@ -37,7 +37,7 @@ public class API {
 
     public static boolean createTable(String tabName, Table tab) {
         try {
-            if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName) ) {
+            if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName)) {
                 String indexName = tabName + "_index";  //refactor index name
                 Index index = new Index(indexName, tabName, CatalogManager.get_primary_key(tabName));
                 IndexManager.create_index(index);  //create index on Index Manager
@@ -112,13 +112,15 @@ public class API {
         return true;
     }
 
-    public static int deleteRow(TableRow row, Condition condition) {
-
-        return 0;
+    public static int deleteRow(String tabName, Vector<Condition> conditions) {
+        int numberOfRecords = RecordManager.delete(tabName, conditions);
+        CatalogManager.delete_row_num(tabName, numberOfRecords);
+        return numberOfRecords;
     }
 
-    public static Vector<TableRow> select(String tabName, Vector<String> attrName, Condition condition) {
-
+    public static Vector<TableRow> select(String tabName, Vector<String> attrName, Vector<Condition> conditions) {
+        Vector<TableRow> resultSet = new Vector<>();
+        
         return null;
     }
 
