@@ -17,7 +17,7 @@ public class Condition {
         this.value = value;
     }
 
-    //if the data in table satisfy the condition, return true, else return false
+    //if the data in table satisfy the condition, return true, else return false 
     public boolean satisfy(String tableName, TableRow data) {
         int index = CatalogManager.get_attribute_index(tableName, this.name); //get attribute index
         String type = CatalogManager.get_type(tableName, index); //get type
