@@ -12,7 +12,7 @@ import java.util.Vector;
 
 public class RecordManager {
 
-    private static BufferManager bufferManager = new BufferManager(); //buffer manager
+    static BufferManager bufferManager = new BufferManager();
 
     //create a file for new table, return true if success, otherwise return false
     public static boolean create_table(String tableName) {
@@ -20,7 +20,7 @@ public class RecordManager {
             File file =new File(tableName);
             if(!file.createNewFile()) //file already exists
                 return false;
-            Block block = bufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
+            Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
             if(block == null) { //can't get from buffer
                 return false;
             } else {
@@ -37,7 +37,7 @@ public class RecordManager {
     public static boolean drop_table(String tableName) {
         File file =new File(tableName);
         if(file.delete()) { //delete the file
-            bufferManager.make_invalid(tableName); // set the block invalid
+            BufferManager.make_invalid(tableName); // set the block invalid
             return true;
         } else {
             return false;
@@ -54,7 +54,7 @@ public class RecordManager {
         int blockOffset = 0; //block offset in file
         Vector<TableRow> result = new Vector<>(); //table row result
 
-        Block block = bufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+        Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
         if(block == null) { //can't get from buffer
             return result;
         }
@@ -63,7 +63,7 @@ public class RecordManager {
             if (byteOffset + storeLen >= Block.BLOCKSIZE) { //find next block
                 blockOffset++;
                 byteOffset = 0; //reset byte offset
-                block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
+                block = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
                 if(block == null) { //can't get from buffer
                     return result;
                 }
@@ -88,10 +88,10 @@ public class RecordManager {
     //insert the tuple in given table, return the inserted address
     public static Address insert(String tableName, TableRow data) {
         int tupleNum = CatalogManager.get_row_num(tableName);
-        Block headBlock = bufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+        Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
 
         if(headBlock == null) { //can't get from buffer
-            return new Address(tableName, -1, 0);
+            return null;
         }
 
         headBlock.lock(true); //lock first block for later write
@@ -107,10 +107,10 @@ public class RecordManager {
 
         int blockOffset = get_block_offset(tableName, tupleOffset); //block offset of tuple
         int byteOffset = get_byte_offset(tableName, tupleOffset); //byte offset of tuple
-        Block insertBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read the block for inserting
+        Block insertBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read the block for inserting
 
         if(insertBlock == null) { //can't get from buffer
-            return new Address(tableName, -1, 0);
+            return null;
         }
 
         if(freeOffset >= 0) { //if head has free offset, update it
@@ -133,7 +133,7 @@ public class RecordManager {
         int blockOffset = 0; //block offset in file
         int deleteNum = 0; // number of delete tuples
 
-        Block headBlock = bufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+        Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
         Block laterBlock = headBlock; //block for sequently scanning
 
         if(headBlock == null) { //can't get from buffer
@@ -146,7 +146,7 @@ public class RecordManager {
             if (byteOffset + storeLen >= Block.BLOCKSIZE) { //byte overflow, find next block
                 blockOffset++;
                 byteOffset = 0; //reset byte offset
-                laterBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
+                laterBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
                 if(laterBlock == null) { //can't get from buffer
                     return deleteNum;
                 }
@@ -171,8 +171,8 @@ public class RecordManager {
         return deleteNum;
     }
 
-    //select the tuple from given list of address on one table, return result list of tuples
-    public static Vector<TableRow> select(Vector<Address> address) {
+    //select the tuple from given list of address on one table with conditions, return result list of tuples
+    public static Vector<TableRow> select(Vector<Address> address, Vector<Condition> conditions) {
         if(address.size() == 0) //empty address
             return new Vector<>();
 
@@ -189,21 +189,29 @@ public class RecordManager {
             blockOffset = address.get(i).get_block_offset(); //read block and byte offset
             byteOffset = address.get(i).get_byte_offset();
             if(i == 0 || blockOffset != blockOffsetPre) { //not in same block as previous
-                block = bufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+                block = BufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
                 if(block == null) {
                     return result;
                 }
             }
             if (block.read_integer(byteOffset) < 0) { //tuple is valid
-                result.add(get_tuple(tableName, block, byteOffset)); //add tuple
+                int j;
+                TableRow newRow = get_tuple(tableName, block, byteOffset);
+                for(j = 0;j < conditions.size();j++) { //check all conditions
+                    if(!conditions.get(j).satisfy(tableName,newRow))
+                        break;
+                }
+                if(j == conditions.size()) { //all satisfy
+                    result.add(newRow); //add tuple
+                }
             }
             blockOffsetPre = blockOffset;
         }
         return result;
     }
 
-    //delete the tuples from given address on one table, return the number of delete tuples
-    public static int delete(Vector<Address> address) {
+    //delete the tuples from given address on one table with conditions, return the number of delete tuples
+    public static int delete(Vector<Address> address, Vector<Condition> conditions) {
         if(address.size() == 0) //empty address
             return 0;
 
@@ -215,7 +223,7 @@ public class RecordManager {
         int byteOffset = 0; //current byte offset
         int tupleOffset = 0; //tuple offset in file
 
-        Block headBlock = bufferManager.read_block_from_disk_quote(tableName, 0); //get head block
+        Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get head block
         Block deleteBlock = null;
 
         if(headBlock == null) { //can't get from buffer
@@ -231,20 +239,27 @@ public class RecordManager {
             tupleOffset = get_tuple_offset(tableName, blockOffset, byteOffset);
 
             if(i == 0 || blockOffset != blockOffsetPre) { //not in same block
-                deleteBlock = bufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+                deleteBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
                 if(deleteBlock == null) { //can't get from buffer
                     return deleteNum;
                 }
             }
 
             if (deleteBlock.read_integer(byteOffset) < 0) { //tuple is valid
-                deleteBlock.write_integer(byteOffset, 0); //set valid byte to 0
-                deleteBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free address
-                headBlock.write_integer(0, tupleOffset); //write delete offset to head
-                deleteNum++;
+                int j;
+                TableRow newRow = get_tuple(tableName, deleteBlock, byteOffset);
+                for(j = 0;j < conditions.size();j++) { //check all conditions
+                    if(!conditions.get(j).satisfy(tableName, newRow))
+                        break;
+                }
+                if(j == conditions.size()) { //all satisfy
+                    deleteBlock.write_integer(byteOffset, 0); //set valid byte to 0
+                    deleteBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free address
+                    headBlock.write_integer(0, tupleOffset); //write delete offset to head
+                    deleteNum++;
+                }
             }
         }
-
         headBlock.lock(false); //unlock head block
         return deleteNum;
     }
@@ -267,7 +282,7 @@ public class RecordManager {
 
     //store the record from buffer to file
     public static void store_record() {
-        bufferManager.destruct_buffer_manager();
+        BufferManager.destruct_buffer_manager();
     }
 
     //get the length for one tuple to store in given table
@@ -331,11 +346,11 @@ public class RecordManager {
         for (int i = 0; i < attributeNum; i++) { //for each attribute
             int length = CatalogManager.get_length(tableName, i); //get length
             String type = CatalogManager.get_type(tableName, i); //get type
-            if (type.equals("char")) { //char type
+            if (type.equals("CHAR")) { //char type
                 attributeValue = block.read_string(offset, length);
-            } else if (type.equals("int")) { //integer type
+            } else if (type.equals("INT")) { //integer type
                 attributeValue = String.valueOf(block.read_integer(offset));
-            } else if (type.equals("float")) { //float type
+            } else if (type.equals("FLOAT")) { //float type
                 attributeValue = String.valueOf(block.read_float(offset));
             }
             offset += length;
@@ -354,11 +369,11 @@ public class RecordManager {
         for (int i = 0; i < attributeNum; i++) { //for each attribute
             int length = CatalogManager.get_length(tableName, i); //get length
             String type = CatalogManager.get_type(tableName, i); //get type
-            if (type.equals("char")) { //char type
+            if (type.equals("CHAR")) { //char type
                 block.write_string(offset,data.get_attribute_value(i));
-            } else if (type.equals("int")) { //integer type
+            } else if (type.equals("INT")) { //integer type
                 block.write_integer(offset, Integer.parseInt(data.get_attribute_value(i)));
-            } else if (type.equals("float")) { //float type
+            } else if (type.equals("FLOAT")) { //float type
                 block.write_float(offset, Float.parseFloat(data.get_attribute_value(i)));
             }
             offset += length;
