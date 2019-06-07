@@ -1,67 +1,117 @@
-import CATALOGMANAGER.CatalogManager;
-import CATALOGMANAGER.Table;
+import BUFFERMANAGER.BufferManager;
+import CATALOGMANAGER.*;
 import INDEXMANAGER.Index;
+import INDEXMANAGER.IndexManager;
 import RECORDMANAGER.Condition;
 import RECORDMANAGER.RecordManager;
 import RECORDMANAGER.TableRow;
 
+import java.io.IOException;
 import java.util.Vector;
 
 public class API {
 
     public API() {
         try {
-            //Put Code Here: init Record Manager
-            //Put Code Here: init Buffer Manager
-            //Put Code Here: init Index Manager
+            BufferManager.initial_buffer();  //init Buffer Manager
+            IndexManager.initial_index(); //init Index Manager
             CatalogManager.initial_catalog();  //init Catalog Manager
+            API.createTable("student",generateTestData());
+            CatalogManager.show_catalog();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public static Table generateTestData() {
+        Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("INT"), true);
+        Attribute tmpAttribute2 = new Attribute("name", NumType.valueOf("CHAR"), 12, true);
+        Attribute tmpAttribute3 = new Attribute("category", NumType.valueOf("CHAR"), 20, true);
+        Vector<Attribute> tmpAttributeVector = new Vector<>();
+        tmpAttributeVector.addElement(tmpAttribute1);
+        tmpAttributeVector.addElement(tmpAttribute2);
+        tmpAttributeVector.addElement(tmpAttribute3);
+        return new Table("students", "id", tmpAttributeVector);
+    }
+
     public static boolean createTable(String tabName, Table tab) {
-        //what if tabName already exists?
-        if (RecordManager.create_table(tabName) && CatalogManager.create_table(tab)) {
-            String indexName = tabName + "_index";
-            Index index = new Index(indexName, tabName, CatalogManager.get_primary_key(tabName));
-            //Put Code Here: create index on Index Manager
-            CatalogManager.create_index(index);
-            return true;
+        try {
+            if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName)) {
+                String indexName = tabName + "_index";  //refactor index name
+                Index index = new Index(indexName, tabName, CatalogManager.get_primary_key(tabName));
+                IndexManager.create_index(index);  //create index on Index Manager
+                CatalogManager.create_index(index); //create index on Catalog Manager
+                return true;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            System.out.println("RUNTIME ERROR STATUS 500: Table " + tabName + " already exist!");
+            return false;
+        } catch (IOException e) {
+            System.out.println("RUNTIME ERROR STATUS 501: Failed to create an index on table " + tabName);
+            return false;
         }
+        System.out.println("RUNTIME ERROR STATUS 502: Failed to create table " + tabName);
         return false;
     }
 
     public static boolean dropTable(String tabName) {
-        //what if tableName does not exist?
-        for (int i = 0; i < CatalogManager.get_attribute_num(tabName); i++) {
-            String attrName = CatalogManager.get_attribute_name(tabName, i);
-            String indexName = CatalogManager.get_index_name(tabName, attrName);
-            if (indexName != null) {
-                //Put Code Here: drop index at Index Manager
+        try {
+            for (int i = 0; i < CatalogManager.get_attribute_num(tabName); i++) {
+                String attrName = CatalogManager.get_attribute_name(tabName, i);
+                String indexName = CatalogManager.get_index_name(tabName, attrName);  //find index if exists
+                if (indexName != null) {
+                    IndexManager.drop_index(CatalogManager.get_index(indexName + "_index")); //drop index at Index Manager
+                }
             }
+            if (CatalogManager.drop_table(tabName) && RecordManager.drop_table(tabName)) return true;
+        } catch (NullPointerException e) {
+            System.out.println("RUNTIME ERROR: Table " + tabName + " does not exist!");
+            return false;
         }
-        RecordManager.drop_table(tabName);
-        CatalogManager.drop_table(tabName);
-        return true;
+        System.out.println("RUNTIME ERROR: Failed to drop table!" + tabName);
+        return false;
     }
 
     public static boolean createIndex(Index index) {
-        
-        return true;
+        try {
+            if (CatalogManager.create_index(index) && IndexManager.create_index(index)) return true;
+        } catch (IOException e) {
+            //do nothing
+        }
+        System.out.println("RUNTIME ERROR: Failed to create index " + index.attributeName + " on table " + index.tableName);
+        return false;
     }
 
     public static boolean dropIndex(Index index) {
-
-        return true;
+        if (IndexManager.drop_index(index) && CatalogManager.drop_index(index.indexName)) return true;
+        System.out.println("RUNTIME ERROR: Failed to drop index " + index.attributeName + " on table " + index.tableName);
+        return false;
     }
 
     public static boolean insertRow(String tabName, TableRow row) {
-
+        try {
+            Address recordAddr = RecordManager.insert(tabName, row);  //insert and get return address
+            int attrNum = CatalogManager.get_attribute_num(tabName);  //get the number of attribute
+            for (int i = 0; i < attrNum; i++) {
+                String attrName = CatalogManager.get_attribute_name(tabName, i);
+                String indexName = CatalogManager.get_index_name(tabName, attrName);  //find index if exists
+                if (indexName != null) {  //index exists, then need to insert the key to BPTree
+                    Index index = CatalogManager.get_index(indexName); //get index
+                    String key = row.get_attribute_value(i);  //get value of the key
+                    IndexManager.insert(index, key, recordAddr);  //insert to index manager
+                    CatalogManager.update_index_table(indexName, index); //update index
+                }
+            }
+            CatalogManager.add_row_num(tabName);  //update number of records in catalog
+        } catch (Exception e) {
+            System.out.println("RUNTIME ERROR: Failed to insert a row on table " + tabName);
+            return false;
+        }
         return true;
     }
 
-    public static int deleteRow(TableRow row) {
+    public static int deleteRow(TableRow row, Condition condition) {
 
         return 0;
     }

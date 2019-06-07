@@ -4,14 +4,17 @@ import INDEXMANAGER.Index;
 import CATALOGMANAGER.Attribute;
 import CATALOGMANAGER.CatalogManager;
 import CATALOGMANAGER.Table;
+import INDEXMANAGER.IndexManager;
+import RECORDMANAGER.RecordManager;
 
 import java.util.Vector;
 
 public class Main {
 
     public static void main(String[] args) {
-        buffer_unit_test(); //Buffer Manager test function
-        catalog_unit_test1();
+        API api = new API();
+        //buffer_unit_test(); //Buffer Manager test function
+        //catalog_unit_test1();
         //catalog_unit_test2();
     }
 
@@ -56,9 +59,9 @@ public class Main {
     private static void catalog_unit_test1() {
         try {
             CatalogManager.initial_catalog();
-            Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("int"), true);
-            Attribute tmpAttribute2 = new Attribute("name", NumType.valueOf("char"), 12, true);
-            Attribute tmpAttribute3 = new Attribute("category", NumType.valueOf("char"), 20, true);
+            Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("INT"), true);
+            Attribute tmpAttribute2 = new Attribute("name", NumType.valueOf("CHAR"), 12, true);
+            Attribute tmpAttribute3 = new Attribute("category", NumType.valueOf("CHAR"), 20, true);
             Vector<Attribute> tmpAttributeVector = new Vector<>();
             tmpAttributeVector.addElement(tmpAttribute1);
             tmpAttributeVector.addElement(tmpAttribute2);

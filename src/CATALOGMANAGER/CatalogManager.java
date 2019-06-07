@@ -163,22 +163,26 @@ public class CatalogManager {
             //tmpTable = en.nextElement();
             Map.Entry entry = iter.next();
             tmpTable = (Table) entry.getValue();
-            System.out.println("\nTable " + tableNum++);
+            System.out.println("\n===========TABLE " + tableNum++);
             System.out.println("Table name: " + tmpTable.tableName);
             System.out.println("Number of Columns: " + tmpTable.attributeNum);
             System.out.println("Primary key: " + tmpTable.primaryKey);
             System.out.println("Number of rows: " + tmpTable.rowNum);
             System.out.println("Number of Indexes : " + tmpTable.indexNum);
             System.out.println("\tIndex name\tTable name\tAttribute name:");
+
+
             for (int i = 0; i < tmpTable.indexNum; i++) {
                 tmpIndex = tmpTable.indexVector.get(i);
                 System.out.println("\t" + tmpIndex.indexName + "\t\t" + tmpIndex.tableName + "\t\t" + tmpIndex.attributeName);
             }
             System.out.println("Attributes: " + tmpTable.attributeNum);
-            System.out.println("\tAttribute name\tType\tlength\tisUnique");
+            //System.out.println("\tAttribute name\tType\tlength\tisUnique");
+            System.out.printf("|%-10s|%-5s|%-6s|%-6s|\n","ATTRIBUTE","TYPE","LENGTH","UNIQUE");
             for (int i = 0; i < tmpTable.attributeNum; i++) {
                 tmpAttribute = tmpTable.attributeVector.get(i);
-                System.out.println("\t" + tmpAttribute.attributeName + "\t\t\t" + tmpAttribute.type.get_type() + "\t\t" + tmpAttribute.type.get_length() + "\t\t" + tmpAttribute.isUnique);
+                //System.out.println("\t" + tmpAttribute.attributeName + "\t\t\t" + tmpAttribute.type.get_type() + "\t\t" + tmpAttribute.type.get_length() + "\t\t" + tmpAttribute.isUnique);
+                System.out.printf("|%-10s|%-5s|%-6s|%-6s|\n",tmpAttribute.attributeName,tmpAttribute.type.get_type(), tmpAttribute.type.get_length(),tmpAttribute.isUnique);
             }
         }
     }

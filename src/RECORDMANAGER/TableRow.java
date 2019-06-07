@@ -19,7 +19,8 @@ public class TableRow {
         this.attributeValue.add(attributeValue);
     }
 
-    public String get_attribute_value(int index) { 
-	return attributeValue.get(index);
+    public String get_attribute_value(int index) {
+        return attributeValue.get(index);
     }
+
 }

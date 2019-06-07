@@ -10,6 +10,10 @@ public class BufferManager {
     public static Block[] buffer = new Block[MAXBLOCKNUM];  //buffer
 
     public BufferManager() {
+        //do nothing
+    }
+
+    public static void initial_buffer() {
         for (int i = 0; i < MAXBLOCKNUM; i++)
             buffer[i] = new Block();  //allocate new memory for blocks
     }

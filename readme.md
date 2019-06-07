@@ -18,6 +18,7 @@
 | 2019-06-07 | zjs  | BPTree修改：增加不等值查找 |
 | 2019-06-07 | stl  | 增加IndexManager，修复BPTree |
 | 2019-06-07 | yrj  | 修改RecordManager，增加地址操作的条件参数 |
+| 2019-06-08 | ycj  | 修改BufferManager，初始化使用静态函数而不是使用构造函数 |
 
 ------------------------------
 
@@ -55,35 +56,35 @@
 
 ```java
 //构造函数，为缓冲区中所有块申请内存空间
-+ BufferManage();
++ public static void init_buffer_manager();
 
 //将块中有效的且脏的数据回写到磁盘
-+ public void destruct_buffer_manager();
++ public static void destruct_buffer_manager();
 
 //将缓冲区中对应文件名为filename的块设置为无效
-+ public void make_invalid(String filename);
++ public static void make_invalid(String filename);
 
 //将文件中的第ofs块读入到缓冲区中
 //如果第ofs块已经在内存中存在，则直接返回对该块的引用
 //如果不存在空闲的块则返回null
 //如果ofs溢出，则返回对默认块（所有字节都是0）的引用
 //如果第ofs块在内存中不存在但是其他必要条件满足，则将该块从文件写入到缓冲区中并返回对该块的引用
-+ public Block read_block_from_disk_quote(String filename, int ofs);
++ public static Block read_block_from_disk_quote(String filename, int ofs);
 
 //将文件中第ofs块读入到缓冲区中，并返回对该块的下标，若出现错误则返回-1或默认块
-+ public int read_block_from_disk(String filename, int ofs);
++ public static int read_block_from_disk(String filename, int ofs);
 
 -----------------------------------------
 //从磁盘的filename文件中的第ofs块读取数据到缓冲区的第bid块中
 //若操作成功则返回true，否则返回false
-+ private boolean read_block_from_disk(String filename, int ofs, int bid);
++ private static boolean read_block_from_disk(String filename, int ofs, int bid);
 
 //把缓冲区的第bid块回写到磁盘中
 //若操作成功则返回true，否则返回false
-+ private boolean write_block_to_disk(int bid);
++ private static boolean write_block_to_disk(int bid);
 
 //得到缓冲区中空闲的块的编号，若返回-1则没有所有的块都被占用
-+ private int get_free_block_id();
++ private static int get_free_block_id();
 ```
 
 ##### 此外对于缓冲区中的块，提供部分底层的操作接口：
