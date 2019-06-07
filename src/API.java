@@ -16,15 +16,15 @@ public class API {
             BufferManager.initial_buffer();  //init Buffer Manager
             IndexManager.initial_index(); //init Index Manager
             CatalogManager.initial_catalog();  //init Catalog Manager
-            Table tab = generateTestData();
-            API.createTable(tab.tableName, tab);
+            Table tab = generate_testData();
+            API.create_table(tab.tableName, tab);
             CatalogManager.show_catalog();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static Table generateTestData() {
+    public static Table generate_testData() {
         Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("INT"), true);
         Attribute tmpAttribute2 = new Attribute("name", NumType.valueOf("CHAR"), 12, true);
         Attribute tmpAttribute3 = new Attribute("category", NumType.valueOf("CHAR"), 20, true);
@@ -35,7 +35,7 @@ public class API {
         return new Table("student", "id", tmpAttributeVector);
     }
 
-    public static boolean createTable(String tabName, Table tab) {
+    public static boolean create_table(String tabName, Table tab) {
         try {
             if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName)) {
                 String indexName = tabName + "_index";  //refactor index name
@@ -56,7 +56,7 @@ public class API {
         return false;
     }
 
-    public static boolean dropTable(String tabName) {
+    public static boolean drop_table(String tabName) {
         try {
             for (int i = 0; i < CatalogManager.get_attribute_num(tabName); i++) {
                 String attrName = CatalogManager.get_attribute_name(tabName, i);
@@ -74,7 +74,7 @@ public class API {
         return false;
     }
 
-    public static boolean createIndex(Index index) {
+    public static boolean create_index(Index index) {
         try {
             if (CatalogManager.create_index(index) && IndexManager.create_index(index)) return true;
         } catch (IOException e) {
@@ -84,13 +84,13 @@ public class API {
         return false;
     }
 
-    public static boolean dropIndex(Index index) {
+    public static boolean drop_index(Index index) {
         if (IndexManager.drop_index(index) && CatalogManager.drop_index(index.indexName)) return true;
         System.out.println("RUNTIME ERROR: Failed to drop index " + index.attributeName + " on table " + index.tableName);
         return false;
     }
 
-    public static boolean insertRow(String tabName, TableRow row) {
+    public static boolean insert_row(String tabName, TableRow row) {
         try {
             Address recordAddr = RecordManager.insert(tabName, row);  //insert and get return address
             int attrNum = CatalogManager.get_attribute_num(tabName);  //get the number of attribute
@@ -112,7 +112,7 @@ public class API {
         return true;
     }
 
-    public static int deleteRow(String tabName, Vector<Condition> conditions) {
+    public static int delete_row(String tabName, Vector<Condition> conditions) {
         int numberOfRecords = RecordManager.delete(tabName, conditions);
         CatalogManager.delete_row_num(tabName, numberOfRecords);
         return numberOfRecords;
@@ -120,7 +120,7 @@ public class API {
 
     public static Vector<TableRow> select(String tabName, Vector<String> attrName, Vector<Condition> conditions) {
         Vector<TableRow> resultSet = new Vector<>();
-        
+
         return null;
     }
 
