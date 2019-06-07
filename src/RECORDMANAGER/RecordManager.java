@@ -18,8 +18,8 @@ public class RecordManager {
     public static boolean create_table(String tableName) {
         try {
             File file =new File(tableName);
-            if(!file.createNewFile()) //file already exists
-                return false;
+            //if(!file.createNewFile()) //file already exists
+                //return false;
             Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
             if(block == null) { //can't get from buffer
                 return false;

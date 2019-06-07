@@ -16,7 +16,8 @@ public class API {
             BufferManager.initial_buffer();  //init Buffer Manager
             IndexManager.initial_index(); //init Index Manager
             CatalogManager.initial_catalog();  //init Catalog Manager
-            API.createTable("student",generateTestData());
+            Table tab = generateTestData();
+            API.createTable(tab.tableName, tab);
             CatalogManager.show_catalog();
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,12 +32,12 @@ public class API {
         tmpAttributeVector.addElement(tmpAttribute1);
         tmpAttributeVector.addElement(tmpAttribute2);
         tmpAttributeVector.addElement(tmpAttribute3);
-        return new Table("students", "id", tmpAttributeVector);
+        return new Table("student", "id", tmpAttributeVector);
     }
 
     public static boolean createTable(String tabName, Table tab) {
         try {
-            if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName)) {
+            if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName) ) {
                 String indexName = tabName + "_index";  //refactor index name
                 Index index = new Index(indexName, tabName, CatalogManager.get_primary_key(tabName));
                 IndexManager.create_index(index);  //create index on Index Manager
