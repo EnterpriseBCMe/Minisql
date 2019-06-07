@@ -22,7 +22,7 @@ public class Condition {
         int index = CatalogManager.get_attribute_index(tableName, this.name); //get attribute index
         String type = CatalogManager.get_type(tableName, index); //get type
 
-        if (type.equals("char")) { //char type
+        if (type.equals("CHAR")) { //char type
             String cmpObject = data.get_attribute_value(index);
             String cmpValue = this.value;
             if (this.operator.equals("=")) {
@@ -40,7 +40,7 @@ public class Condition {
             } else { //undefined operator
                 return false;
             }
-        } else if (type.equals("int")) { //integer type
+        } else if (type.equals("INT")) { //integer type
             int cmpObject = Integer.parseInt(data.get_attribute_value(index));
             int cmpValue = Integer.parseInt(this.value);
             switch (this.operator) {
@@ -59,7 +59,7 @@ public class Condition {
                 default:
                     return false;
             }
-        } else if (type.equals("float")) { //float type
+        } else if (type.equals("FLOAT")) { //float type
             float cmpObject = Float.parseFloat(data.get_attribute_value(index));
             float cmpValue = Float.parseFloat(this.value);
             if (this.operator.equals("=")) {
