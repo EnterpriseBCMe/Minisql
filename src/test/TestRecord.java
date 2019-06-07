@@ -17,11 +17,11 @@ public class TestRecord {
 
         Vector<Attribute> attributes = new Vector<>(); //create table
         Attribute attribute;
-        attribute = new Attribute("id", NumType.valueOf("int"), true);
+        attribute = new Attribute("id", NumType.valueOf("INT"), true);
         attributes.add(attribute);
-        attribute = new Attribute("name", NumType.valueOf("char"), 20, false);
+        attribute = new Attribute("name", NumType.valueOf("CHAR"), 20, false);
         attributes.add(attribute);
-        attribute = new Attribute("price", NumType.valueOf("float"), false);
+        attribute = new Attribute("price", NumType.valueOf("FLOAT"), false);
         attributes.add(attribute);
 
         Table table = new Table("Goods", "id", attributes);
@@ -98,15 +98,17 @@ public class TestRecord {
 
     }
     private static void deleteTuplesInAddress(Vector<Address> addresses) {
+        Vector<Condition> contidions = new Vector<>();
         System.out.println("Delete address start.....\n");
-        int num = RecordManager.delete(addresses);
+        int num = RecordManager.delete(addresses, contidions);
         CatalogManager.delete_row_num("Goods",num);
         System.out.println("Delete number: "+num+"\n");
         System.out.println("Delete address end.....\n");
     }
     private static void selectTuplesInAddress(Vector<Address> addresses) {
+        Vector<Condition> contidions = new Vector<>();
         System.out.println("Select address start.....\n");
-        Vector<TableRow> tableRows = RecordManager.select(addresses);
+        Vector<TableRow> tableRows = RecordManager.select(addresses, contidions);
         printResult("Goods", tableRows);
         System.out.println("Select address end.....\n");
     }
