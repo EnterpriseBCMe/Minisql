@@ -17,6 +17,8 @@
 | 2019-06-06 | ycj  | 修改整体架构 |
 | 2019-06-07 | zjs  | BPTree修改：增加不等值查找 |
 | 2019-06-07 | stl  | 增加IndexManager，修复BPTree |
+| 2019-06-07 | yrj  | 修改RecordManager，增加地址操作的条件参数 |
+
 ------------------------------
 
 ### Coding Style 代码风格约定
@@ -269,7 +271,7 @@
 
 //insert功能函数，给定表名和待插入记录，返回该记录所插入的地址
 //插入记录中属性顺序必须和创建表时属性的顺序一致
-//若插入失败，返回同文件名，blockOffset = -1, byteOffset = 0 的地址
+//若插入失败，返回null
 //内部暂时没有调用CatalogManager来增加记录数，需外部手动调用，若需要可以在内部放置
 + public static Address insert(String tableName, TableRow data)；
 
@@ -277,20 +279,21 @@
 //内部暂时没有调用CatalogManager来删除记录数，需外部手动调用，若需要可以在内部放置
 + public static int delete(String tableName, Vector<Condition> conditions)；
 
-//select功能函数，给定一系列地址，返回地址对应的全部记录
+//select功能函数，给定一系列地址及条件，返回对应地址、且符合条件的全部记录
 //返回记录的属性顺序和创建表时一致
 //所有地址必须在同一文件内
 //若地址对应的记录不存在，则不会加入结果中
-+ public static Vector<TableRow> select(Vector<Address> address)；
++ public static Vector<TableRow> select(Vector<Address> address，Vector<Condition> conditions)；
 
-//delete功能函数，给定一系列地址，删除地址对应的记录，返回删除记录的个数
+//delete功能函数，给定一系列地址，删除对应地址、且符合条件的记录，返回删除记录的个数
 //所有地址必须在同一文件内
 //内部暂时没有调用CatalogManager来删除记录数，需外部手动调用，若需要可以在内部放置
 //若地址对应的记录不存在，则不会计入删除数
-+ public static int delete(Vector<Address> address)；
++ public static int delete(Vector<Address> address，Vector<Condition> conditions)；
 
 //project功能函数，给定表名，查询结果和投影属性名称，返回投影后的记录结果
 //投影属性名称顺序没有要求，查询结果的属性顺序必须和创建表时的属性一致
+//投影结果的属性顺序与投影名称顺序一致
 + public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName)；
 
 //保存函数，将当前操作的记录保存到磁盘中
