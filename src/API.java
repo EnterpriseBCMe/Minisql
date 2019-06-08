@@ -17,23 +17,23 @@ public class API {
             CatalogManager.initial_catalog();  //init Catalog Manager
             IndexManager.initial_index(); //init Index Manager
             Table tab1 = generate_testData1();
-            API.create_table(tab1.tableName, tab1);
-            CatalogManager.show_catalog();
+            //API.create_table(tab1.tableName, tab1);
+            //CatalogManager.show_catalog();
             /*Table tab2 = generate_testData2();
             API.create_table(tab2.tableName,tab2);
             CatalogManager.show_catalog();
             API.drop_table(tab2.tableName);
             CatalogManager.show_catalog();*/
-            API.create_index(new Index("student_index_id", "student","id"));
-            CatalogManager.show_catalog();/*
-            API.create_index(new Index("student_index_name","student","name"));
+            //API.create_index(new Index("student_index_id", "student","id"));
+            CatalogManager.show_catalog();
+            /*API.create_index(new Index("student_index_name","student","name"));
             CatalogManager.show_catalog();
             API.drop_index(new Index("student_index_name","student","name"));
             CatalogManager.show_catalog();*/
             TableRow tbr1 = generate_testData3();
             insert_row("student", tbr1);
             TableRow tbr2 = generate_testData4();
-            insert_row("student", tbr2); //"2 Jack" will override previous data "1 Tom"
+            insert_row("student", tbr2);
             TableRow tbr3 = generate_testData5();
             insert_row("student", tbr3);
             /*Vector<Condition> tmpCond = new Vector<>();
@@ -48,15 +48,21 @@ public class API {
             Vector<Condition> conditions = new Vector<>();
             //conditions.addElement(new Condition("id","<","2"));
             //conditions.addElement(new Condition("id","=","2"));
-            conditions.addElement(new Condition("id", "<", "3"));
-            Vector<TableRow> res = select("student", new Vector<>(), new Vector<>()); //cause endless loop
-            //Vector<TableRow> res = select("student", attriNameVector, conditions); //return two "2 Jack"'s
+            conditions.addElement(new Condition("id", "<>", "2"));
+            //Vector<TableRow> res = select("student", new Vector<>(), new Vector<>());
+            Vector<TableRow> res = select("student", attriNameVector, conditions);
             for (int i = 0; i < res.size(); i++) {
                 for (int j = 0; j < res.get(i).get_attribute_size(); j++) {
                     System.out.println(res.get(i).get_attribute_value(j));
                 }
             }
             //CatalogManager.store_catalog();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try { //store data back to disk
+            CatalogManager.store_catalog();
+            BufferManager.destruct_buffer_manager();
         } catch (Exception e) {
             e.printStackTrace();
         }
