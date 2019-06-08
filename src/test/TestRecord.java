@@ -1,5 +1,6 @@
 package test;
 
+import BUFFERMANAGER.BufferManager;
 import CATALOGMANAGER.*;
 import RECORDMANAGER.Condition;
 import RECORDMANAGER.RecordManager;
@@ -14,7 +15,7 @@ public class TestRecord {
         } catch(Exception e){
             System.out.println(e.getMessage());
         }
-
+        BufferManager.initial_buffer();
         Vector<Attribute> attributes = new Vector<>(); //create table
         Attribute attribute;
         attribute = new Attribute("id", NumType.valueOf("INT"), true);
