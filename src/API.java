@@ -16,15 +16,37 @@ public class API {
             BufferManager.initial_buffer();  //init Buffer Manager
             CatalogManager.initial_catalog();  //init Catalog Manager
             IndexManager.initial_index(); //init Index Manager
-            Table tab = generate_testData();
-            API.create_table(tab.tableName, tab);
+            Table tab1 = generate_testData1();
+            API.create_table(tab1.tableName, tab1);
             CatalogManager.show_catalog();
+            /*Table tab2 = generate_testData2();
+            API.create_table(tab2.tableName,tab2);
+            CatalogManager.show_catalog();
+            API.drop_table(tab2.tableName);
+            CatalogManager.show_catalog();*/
+            /*API.create_index(new Index("student_index_id", "student","id"));
+            CatalogManager.show_catalog();
+            API.create_index(new Index("student_index_name","student","name"));
+            CatalogManager.show_catalog();
+            API.drop_index(new Index("student_index_name","student","name"));
+            CatalogManager.show_catalog();*/
+            TableRow tbr1 = generate_testData3();
+            insert_row("student", tbr1);
+            TableRow tbr2 = generate_testData4();
+            insert_row("student", tbr2);
+            Vector<Condition> tmpCond = new Vector<>();
+            tmpCond.addElement(new Condition("name", "=", "Tom"));
+            System.out.println(delete_row("student", tmpCond));
+            tmpCond.clear();
+            tmpCond.addElement(new Condition("name", "=", "Jack"));
+            System.out.println(delete_row("student", tmpCond));
+            //CatalogManager.store_catalog();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static Table generate_testData() {
+    public static Table generate_testData1() {
         Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("INT"), true);
         Attribute tmpAttribute2 = new Attribute("name", NumType.valueOf("CHAR"), 12, true);
         Attribute tmpAttribute3 = new Attribute("category", NumType.valueOf("CHAR"), 20, true);
@@ -33,6 +55,33 @@ public class API {
         tmpAttributeVector.addElement(tmpAttribute2);
         tmpAttributeVector.addElement(tmpAttribute3);
         return new Table("student", "id", tmpAttributeVector);
+    }
+
+    public static Table generate_testData2() {
+        Attribute tmpAttribute1 = new Attribute("id", NumType.valueOf("INT"), true);
+        Attribute tmpAttribute2 = new Attribute("card", NumType.valueOf("CHAR"), 12, true);
+        Attribute tmpAttribute3 = new Attribute("record", NumType.valueOf("CHAR"), 20, true);
+        Vector<Attribute> tmpAttributeVector = new Vector<>();
+        tmpAttributeVector.addElement(tmpAttribute1);
+        tmpAttributeVector.addElement(tmpAttribute2);
+        tmpAttributeVector.addElement(tmpAttribute3);
+        return new Table("card", "id", tmpAttributeVector);
+    }
+
+    public static TableRow generate_testData3() {
+        TableRow tbr = new TableRow();
+        tbr.add_attribute_value("1");
+        tbr.add_attribute_value("Tom");
+        tbr.add_attribute_value("CS");
+        return tbr;
+    }
+
+    public static TableRow generate_testData4() {
+        TableRow tbr = new TableRow();
+        tbr.add_attribute_value("2");
+        tbr.add_attribute_value("Jack");
+        tbr.add_attribute_value("Math");
+        return tbr;
     }
 
     public static boolean create_table(String tabName, Table tab) {
@@ -62,7 +111,7 @@ public class API {
                 String attrName = CatalogManager.get_attribute_name(tabName, i);
                 String indexName = CatalogManager.get_index_name(tabName, attrName);  //find index if exists
                 if (indexName != null) {
-                    IndexManager.drop_index(CatalogManager.get_index(indexName + "_index")); //drop index at Index Manager
+                    IndexManager.drop_index(CatalogManager.get_index(indexName)); //drop index at Index Manager
                 }
             }
             if (CatalogManager.drop_table(tabName) && RecordManager.drop_table(tabName)) return true;
@@ -118,7 +167,7 @@ public class API {
         return numberOfRecords;
     }
 
-    public static Vector<TableRow> select(String tabName, Vector<String> attrName, Vector<Condition> conditions) {
+    public static Vector<TableRow> select(String tabName, Vector<String> attriName, Vector<Condition> conditions) {
         Vector<TableRow> resultSet = new Vector<>();
 
         return null;
