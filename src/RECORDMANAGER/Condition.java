@@ -25,6 +25,11 @@ public class Condition {
         if (type.equals("CHAR")) { //char type
             String cmpObject = data.get_attribute_value(index);
             String cmpValue = this.value;
+
+            int first = cmpObject.indexOf(0);
+            first = first == -1 ? cmpObject.length() : first;
+            cmpObject = cmpObject.substring(0, first); //filter the '\0'
+
             if (this.operator.equals("=")) {
                 return cmpObject.compareTo(cmpValue) == 0;
             } else if (this.operator.equals("<>")) {
