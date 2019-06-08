@@ -19,7 +19,9 @@
 | 2019-06-07 | stl  | 增加IndexManager，修复BPTree |
 | 2019-06-07 | yrj  | 修改RecordManager，增加地址操作的条件参数 |
 | 2019-06-08 | ycj  | 修改BufferManager，初始化使用静态函数而不是使用构造函数 |
+| 2019-06-08 | stl  | 修复API中table、index创建和删除的bug | 
 | 2019-06-08 | yrj  | 修改RecordManager和Condition，修正了String比较方式和插入方式 |
+| 2019-06-08 | stl  | 完成API中的select函数 |
 
 ------------------------------
 
