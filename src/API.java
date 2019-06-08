@@ -34,12 +34,28 @@ public class API {
             insert_row("student", tbr1);
             TableRow tbr2 = generate_testData4();
             insert_row("student", tbr2);
-            Vector<Condition> tmpCond = new Vector<>();
+            TableRow tbr3 = generate_testData5();
+            insert_row("student", tbr3);
+            /*Vector<Condition> tmpCond = new Vector<>();
             tmpCond.addElement(new Condition("name", "=", "Tom"));
             System.out.println(delete_row("student", tmpCond));
             tmpCond.clear();
             tmpCond.addElement(new Condition("name", "=", "Jack"));
-            System.out.println(delete_row("student", tmpCond));
+            System.out.println(delete_row("student", tmpCond));*/
+            Vector<String> attriNameVector = new Vector<>();
+            attriNameVector.addElement("id");
+            attriNameVector.addElement("name");
+            Vector<Condition> conditions = new Vector<>();
+            //conditions.addElement(new Condition("id","<","2"));
+            //conditions.addElement(new Condition("id","=","2"));
+            conditions.addElement(new Condition("category", "=", "Math"));
+            Vector<TableRow> res = select("student", new Vector<String>(), new Vector<Condition>());
+            for (int i = 0; i < res.size(); i++) {
+                for (int j = 0; j < res.get(i).get_attribute_size(); j++) {
+                    System.out.println(res.get(i).get_attribute_value(j));
+                }
+                System.out.println("\n");
+            }
             //CatalogManager.store_catalog();
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,6 +96,14 @@ public class API {
         TableRow tbr = new TableRow();
         tbr.add_attribute_value("2");
         tbr.add_attribute_value("Jack");
+        tbr.add_attribute_value("Math");
+        return tbr;
+    }
+
+    public static TableRow generate_testData5() {
+        TableRow tbr = new TableRow();
+        tbr.add_attribute_value("3");
+        tbr.add_attribute_value("Bob");
         tbr.add_attribute_value("Math");
         return tbr;
     }
@@ -169,8 +193,25 @@ public class API {
 
     public static Vector<TableRow> select(String tabName, Vector<String> attriName, Vector<Condition> conditions) {
         Vector<TableRow> resultSet = new Vector<>();
-
-        return null;
+        if (conditions.size() == 1 && conditions.get(0).get_operator() == "=" && CatalogManager.get_index_name(tabName, conditions.get(0).get_name()) != null) {
+            String indexName = CatalogManager.get_index_name(tabName, conditions.get(0).get_name());
+            try {
+                Index idx = CatalogManager.get_index(indexName);
+                Vector<Address> addresses = IndexManager.select(idx, conditions.get(0));
+                if (addresses != null) {
+                    resultSet = RecordManager.select(addresses, conditions);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            resultSet = RecordManager.select(tabName, conditions);
+        }
+        if (!attriName.isEmpty()) {
+            return RecordManager.project(tabName, resultSet, attriName);
+        } else {
+            return resultSet;
+        }
     }
 
 }

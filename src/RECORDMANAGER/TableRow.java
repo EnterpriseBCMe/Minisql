@@ -23,4 +23,7 @@ public class TableRow {
         return attributeValue.get(index);
     }
 
+    public int get_attribute_size() {
+        return attributeValue.size();
+    }
 }

@@ -300,11 +300,11 @@ public class IndexManager {
         for (int i = 0; i < attributeNum; i++) { //for each attribute
             int length = CatalogManager.get_length(tableName, i); //get length
             String type = CatalogManager.get_type(tableName, i); //get type
-            if (type.equals("char")) { //char type
+            if (type.equals("CHAR")) { //char type
                 attributeValue = block.read_string(offset, length);
-            } else if (type.equals("int")) { //integer type
+            } else if (type.equals("INT")) { //integer type
                 attributeValue = String.valueOf(block.read_integer(offset));
-            } else if (type.equals("float")) { //float type
+            } else if (type.equals("FLOAT")) { //float type
                 attributeValue = String.valueOf(block.read_float(offset));
             }
             offset += length;
