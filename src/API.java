@@ -24,8 +24,8 @@ public class API {
             CatalogManager.show_catalog();
             API.drop_table(tab2.tableName);
             CatalogManager.show_catalog();*/
-            /*API.create_index(new Index("student_index_id", "student","id"));
-            CatalogManager.show_catalog();
+            API.create_index(new Index("student_index_id", "student","id"));
+            CatalogManager.show_catalog();/*
             API.create_index(new Index("student_index_name","student","name"));
             CatalogManager.show_catalog();
             API.drop_index(new Index("student_index_name","student","name"));
@@ -33,7 +33,7 @@ public class API {
             TableRow tbr1 = generate_testData3();
             insert_row("student", tbr1);
             TableRow tbr2 = generate_testData4();
-            insert_row("student", tbr2);
+            insert_row("student", tbr2); //"2 Jack" will override previous data "1 Tom"
             TableRow tbr3 = generate_testData5();
             insert_row("student", tbr3);
             /*Vector<Condition> tmpCond = new Vector<>();
@@ -48,13 +48,13 @@ public class API {
             Vector<Condition> conditions = new Vector<>();
             //conditions.addElement(new Condition("id","<","2"));
             //conditions.addElement(new Condition("id","=","2"));
-            conditions.addElement(new Condition("category", "=", "Math"));
-            Vector<TableRow> res = select("student", new Vector<String>(), new Vector<Condition>());
+            conditions.addElement(new Condition("id", "<", "3"));
+            Vector<TableRow> res = select("student", new Vector<>(), new Vector<>()); //cause endless loop
+            //Vector<TableRow> res = select("student", attriNameVector, conditions); //return two "2 Jack"'s
             for (int i = 0; i < res.size(); i++) {
                 for (int j = 0; j < res.get(i).get_attribute_size(); j++) {
                     System.out.println(res.get(i).get_attribute_value(j));
                 }
-                System.out.println("\n");
             }
             //CatalogManager.store_catalog();
         } catch (Exception e) {
@@ -191,13 +191,47 @@ public class API {
         return numberOfRecords;
     }
 
+//    public static Vector<TableRow> select(String tabName, Vector<String> attriName, Vector<Condition> conditions) {
+//        Vector<TableRow> resultSet = new Vector<>();
+//        if (conditions.size() == 1 && conditions.get(0).get_operator() == "=" && CatalogManager.get_index_name(tabName, conditions.get(0).get_name()) != null) {
+//            String indexName = CatalogManager.get_index_name(tabName, conditions.get(0).get_name());
+//            try {
+//                Index idx = CatalogManager.get_index(indexName);
+//                Vector<Address> addresses = IndexManager.select(idx, conditions.get(0));
+//                if (addresses != null) {
+//                    resultSet = RecordManager.select(addresses, conditions);
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            resultSet = RecordManager.select(tabName, conditions);
+//        }
+//        if (!attriName.isEmpty()) {
+//            return RecordManager.project(tabName, resultSet, attriName);
+//        } else {
+//            return resultSet;
+//        }
+//    }
+
     public static Vector<TableRow> select(String tabName, Vector<String> attriName, Vector<Condition> conditions) {
         Vector<TableRow> resultSet = new Vector<>();
-        if (conditions.size() == 1 && conditions.get(0).get_operator() == "=" && CatalogManager.get_index_name(tabName, conditions.get(0).get_name()) != null) {
-            String indexName = CatalogManager.get_index_name(tabName, conditions.get(0).get_name());
+        boolean hasIndex = false;
+        String indexName = null;
+        Condition condition = null;
+        for (int i = 0; i < conditions.size(); i++) {
+            if (CatalogManager.get_index_name(tabName, conditions.get(i).get_name()) != null) {
+                hasIndex = true;
+                condition = conditions.get(i);
+                indexName = CatalogManager.get_index_name(tabName, condition.get_name());
+                conditions.remove(condition);
+                break;
+            }
+        }
+        if (hasIndex) {
             try {
                 Index idx = CatalogManager.get_index(indexName);
-                Vector<Address> addresses = IndexManager.select(idx, conditions.get(0));
+                Vector<Address> addresses = IndexManager.select(idx, condition);
                 if (addresses != null) {
                     resultSet = RecordManager.select(addresses, conditions);
                 }
