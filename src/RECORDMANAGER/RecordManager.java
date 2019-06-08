@@ -352,7 +352,12 @@ public class RecordManager {
             int length = CatalogManager.get_length(tableName, i); //get length
             String type = CatalogManager.get_type(tableName, i); //get type
             if (type.equals("CHAR")) { //char type
+                int first;
                 attributeValue = block.read_string(offset, length);
+                first = attributeValue.indexOf(0);
+                first = first == -1 ? attributeValue.length() : first;
+                attributeValue = attributeValue.substring(0, first); //filter '\0'
+
             } else if (type.equals("INT")) { //integer type
                 attributeValue = String.valueOf(block.read_integer(offset));
             } else if (type.equals("FLOAT")) { //float type
