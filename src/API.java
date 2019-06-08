@@ -14,8 +14,8 @@ public class API {
     public API() {
         try {
             BufferManager.initial_buffer();  //init Buffer Manager
-            IndexManager.initial_index(); //init Index Manager
             CatalogManager.initial_catalog();  //init Catalog Manager
+            IndexManager.initial_index(); //init Index Manager
             Table tab = generate_testData();
             API.create_table(tab.tableName, tab);
             CatalogManager.show_catalog();

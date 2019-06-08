@@ -11,9 +11,9 @@ import java.util.Vector;
 
 public class IndexManager {
 
-    private static LinkedHashMap<String, BPTree<Integer, Address>> intTreeMap;
-    private static LinkedHashMap<String, BPTree<String, Address>> charTreeMap;
-    private static LinkedHashMap<String, BPTree<Float, Address>> floatTreeMap;
+    private static LinkedHashMap<String, BPTree<Integer, Address>> intTreeMap = new LinkedHashMap<>();
+    private static LinkedHashMap<String, BPTree<String, Address>> charTreeMap = new LinkedHashMap<>();
+    private static LinkedHashMap<String, BPTree<Float, Address>> floatTreeMap = new LinkedHashMap<>();
 
     public IndexManager() {
         //Nothing
