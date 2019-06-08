@@ -7,12 +7,11 @@ import CATALOGMANAGER.CatalogManager;
 import CATALOGMANAGER.FieldType;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Vector;
 
 public class RecordManager {
-
-    static BufferManager bufferManager = new BufferManager();
 
     //create a file for new table, return true if success, otherwise return false
     public static boolean create_table(String tableName) {
@@ -110,6 +109,7 @@ public class RecordManager {
         Block insertBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read the block for inserting
 
         if(insertBlock == null) { //can't get from buffer
+            headBlock.lock(false);
             return null;
         }
 
@@ -148,6 +148,7 @@ public class RecordManager {
                 byteOffset = 0; //reset byte offset
                 laterBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
                 if(laterBlock == null) { //can't get from buffer
+                    headBlock.lock(false);
                     return deleteNum;
                 }
             }
@@ -168,6 +169,8 @@ public class RecordManager {
             }
             byteOffset += storeLen; //update byte offset
         }
+
+        headBlock.lock(false);
         return deleteNum;
     }
 
@@ -241,6 +244,7 @@ public class RecordManager {
             if(i == 0 || blockOffset != blockOffsetPre) { //not in same block
                 deleteBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
                 if(deleteBlock == null) { //can't get from buffer
+                    headBlock.lock(false);
                     return deleteNum;
                 }
             }
@@ -259,6 +263,7 @@ public class RecordManager {
                     deleteNum++;
                 }
             }
+            blockOffsetPre = blockOffset;
         }
         headBlock.lock(false); //unlock head block
         return deleteNum;
@@ -370,6 +375,9 @@ public class RecordManager {
             int length = CatalogManager.get_length(tableName, i); //get length
             String type = CatalogManager.get_type(tableName, i); //get type
             if (type.equals("CHAR")) { //char type
+                byte[] reset = new byte[length];
+                Arrays.fill(reset, (byte) 0);
+                block.write_data(offset, reset);
                 block.write_string(offset,data.get_attribute_value(i));
             } else if (type.equals("INT")) { //integer type
                 block.write_integer(offset, Integer.parseInt(data.get_attribute_value(i)));
