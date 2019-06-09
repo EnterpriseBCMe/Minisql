@@ -23,6 +23,7 @@
 | 2019-06-08 | yrj  | 修改RecordManager和Condition，修正了CHAR类的读写方式 |
 | 2019-06-08 | stl  | 完成API中的select函数 |
 | 2019-06-09 | zjs  | 修改API中的select函数 |
+| 2019-06-09 | zjs  | 修改API中的delete_row函数 |
 
 ------------------------------
 
