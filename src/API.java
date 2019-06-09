@@ -28,7 +28,7 @@ public class API {
             CatalogManager.show_catalog();
             /*API.create_index(new Index("student_index_name","student","name"));
             CatalogManager.show_catalog();
-            API.drop_index(new Index("student_index_name","student","name"));
+            API.drop_index("student_index_name");
             CatalogManager.show_catalog();*/
 //            TableRow tbr1 = generate_testData3();
 //            insert_row("student", tbr1);
@@ -165,8 +165,9 @@ public class API {
         return false;
     }
 
-    public static boolean drop_index(Index index) {
-        if (IndexManager.drop_index(index) && CatalogManager.drop_index(index.indexName)) return true;
+    public static boolean drop_index(String indexName) {
+        Index index = CatalogManager.get_index(indexName);
+        if (IndexManager.drop_index(index) && CatalogManager.drop_index(indexName)) return true;
         System.out.println("RUNTIME ERROR: Failed to drop index " + index.attributeName + " on table " + index.tableName);
         return false;
     }

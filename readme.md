@@ -24,6 +24,7 @@
 | 2019-06-08 | stl  | 完成API中的select函数 |
 | 2019-06-09 | zjs  | 修改API中的select函数 |
 | 2019-06-09 | zjs  | 修改API中的delete_row函数 |
+| 2019-06-09 | stl  | 修改API中的drop_index参数为indexName |
 
 ------------------------------
 
