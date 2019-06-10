@@ -29,7 +29,9 @@ public class Interpreter {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             interpret(reader);
         } catch (IOException e) {
-            System.out.println("RunTime error: IO exception occurs");
+            System.out.println("Runtime error: IO exception occurs");
+        } catch (Exception e) {
+            System.out.println("Runtime error: " + e.getMessage());
         }
 
     }
@@ -457,9 +459,6 @@ public class Interpreter {
         }
     }
 
-
-
-
     private static void parse_insert(String statement) {
         System.out.println("In parse_insert..");
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
@@ -580,23 +579,27 @@ public class Interpreter {
 
     private static void parse_delete(String statement) {
         //delete from [tabName] where []
-        int num = 0;
-        String tabStr = Utils.substring(statement, "from ", " where").trim();
-        String conStr = Utils.substring(statement, "where ", "").trim();
-        Vector<Condition> conditions;
-        Vector<String> attrNames;
-        if (tabStr.equals("")) {  //delete from ...
-            tabStr = Utils.substring(statement, "from ", "").trim();
-            num = API.delete_row(tabStr, new Vector<>());
-            System.out.println("Query ok! " + num + "row(s) deleted");
-        } else {  //delete from ... where ...
-            String[] conSet = conStr.split(" *and *");
-            //get condition vector
-            try {
+        try {
+            int num;
+            String tabStr = Utils.substring(statement, "from ", " where").trim();
+            String conStr = Utils.substring(statement, "where ", "").trim();
+            Vector<Condition> conditions;
+            Vector<String> attrNames;
+            if (tabStr.equals("")) {  //delete from ...
+                tabStr = Utils.substring(statement, "from ", "").trim();
+                num = API.delete_row(tabStr, new Vector<>());
+                System.out.println("Query ok! " + num + "row(s) deleted");
+            } else {  //delete from ... where ...
+                String[] conSet = conStr.split(" *and *");
+                //get condition vector
                 conditions = Utils.create_conditon(conSet);
                 API.delete_row(tabStr, conditions);
-            } catch (Exception e) {
-                System.out.print(e.getMessage());
+            }
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
             }
         }
     }
@@ -649,8 +652,7 @@ public class Interpreter {
             nestLock = false; //unlock
         }
     }
-
-
+    
 }
 
 class Utils {
