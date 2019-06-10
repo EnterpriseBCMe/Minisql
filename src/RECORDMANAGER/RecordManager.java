@@ -5,6 +5,8 @@ import BUFFERMANAGER.BufferManager;
 import CATALOGMANAGER.Address;
 import CATALOGMANAGER.CatalogManager;
 import CATALOGMANAGER.FieldType;
+import INDEXMANAGER.Index;
+import INDEXMANAGER.IndexManager;
 
 import java.io.File;
 import java.util.Arrays;
@@ -164,6 +166,14 @@ public class RecordManager {
                     laterBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free offset
                     headBlock.write_integer(0, currentNum); //write deleted offset to head pointer
                     deleteNum++;
+                    for(int j = 0;j < newRow.get_attribute_size();j++) { //delete index
+                        String attrName = CatalogManager.get_attribute_name(tableName, j);
+                        if (CatalogManager.is_index_key(tableName, attrName)) {
+                            String indexName = CatalogManager.get_index_name(tableName, attrName);
+                            Index index = CatalogManager.get_index(indexName);
+                            IndexManager.delete(index, newRow.get_attribute_value(j));
+                        }
+                    }
                 }
                 processNum++; //update processed tuple number
             }
@@ -261,6 +271,14 @@ public class RecordManager {
                     deleteBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free address
                     headBlock.write_integer(0, tupleOffset); //write delete offset to head
                     deleteNum++;
+                    for(int k = 0;k < newRow.get_attribute_size();k++) { //delete index
+                        String attrName = CatalogManager.get_attribute_name(tableName, k);
+                        if (CatalogManager.is_index_key(tableName, attrName)) {
+                            String indexName = CatalogManager.get_index_name(tableName, attrName);
+                            Index index = CatalogManager.get_index(indexName);
+                            IndexManager.delete(index, newRow.get_attribute_value(k));
+                        }
+                    }
                 }
             }
             blockOffsetPre = blockOffset;
