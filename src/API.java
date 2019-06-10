@@ -16,7 +16,7 @@ public class API {
             BufferManager.initial_buffer();  //init Buffer Manager
             CatalogManager.initial_catalog();  //init Catalog Manager
             IndexManager.initial_index(); //init Index Manager
-            Table tab1 = generate_testData1();
+            //Table tab1 = generate_testData1();
             //API.create_table(tab1.tableName, tab1);
             //CatalogManager.show_catalog();
             /*Table tab2 = generate_testData2();
@@ -25,7 +25,7 @@ public class API {
             API.drop_table(tab2.tableName);
             CatalogManager.show_catalog();*/
             //API.create_index(new Index("student_index_id", "student","id"));
-            CatalogManager.show_catalog();
+            //CatalogManager.show_catalog();
             /*API.create_index(new Index("student_index_name","student","name"));
             CatalogManager.show_catalog();
             API.drop_index("student_index_name");
@@ -42,32 +42,32 @@ public class API {
             tmpCond.clear();
             tmpCond.addElement(new Condition("name", "=", "Jack"));
             System.out.println(delete_row("student", tmpCond));*/
-            Vector<String> attriNameVector = new Vector<>();
-            attriNameVector.addElement("id");
-            attriNameVector.addElement("name");
-            Vector<Condition> conditions = new Vector<>();
+            //Vector<String> attriNameVector = new Vector<>();
+            //attriNameVector.addElement("id");
+            //attriNameVector.addElement("name");
+            //Vector<Condition> conditions = new Vector<>();
             //conditions.addElement(new Condition("id","<","2"));
             //conditions.addElement(new Condition("id","=","2"));
             //conditions.addElement(new Condition("id", "<>", "2"));
-            conditions.addElement(new Condition("name", "=", "Jack"));
-            delete_row("student", conditions);
-            Vector<TableRow> res = select("student", new Vector<>(), new Vector<>());
+            //conditions.addElement(new Condition("name", "=", "Jack"));
+            //delete_row("student", conditions);
+            //Vector<TableRow> res = select("student", new Vector<>(), new Vector<>());
             //Vector<TableRow> res = select("student", attriNameVector, conditions);
-            for (int i = 0; i < res.size(); i++) {
-                for (int j = 0; j < res.get(i).get_attribute_size(); j++) {
-                    System.out.println(res.get(i).get_attribute_value(j));
-                }
-            }
+            //for (int i = 0; i < res.size(); i++) {
+            //    for (int j = 0; j < res.get(i).get_attribute_size(); j++) {
+            //        System.out.println(res.get(i).get_attribute_value(j));
+             //   }
+            //}
             //CatalogManager.store_catalog();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try { //store data back to disk
-            CatalogManager.store_catalog();
-            BufferManager.destruct_buffer_manager();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+       // try { //store data back to disk
+           // CatalogManager.store_catalog();
+           // BufferManager.destruct_buffer_manager();
+       // } catch (Exception e) {
+        //    e.printStackTrace();
+       // }
     }
 
     public static Table generate_testData1() {
