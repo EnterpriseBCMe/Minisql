@@ -10,7 +10,7 @@ import RECORDMANAGER.RecordManager;
 import java.util.Vector;
 
 public class Main {
-
+/*
     public static void main(String[] args) {
         API api = new API();
         //buffer_unit_test(); //Buffer Manager test function
@@ -86,5 +86,5 @@ public class Main {
             e.printStackTrace();
         }
 
-    }
+    }*/
 }

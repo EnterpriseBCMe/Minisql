@@ -23,7 +23,6 @@ public class Interpreter {
 
     public static void main(String[] args) {
         try {
-            // add API initialize in here
             API api = new API();
             System.out.println("Weclome to minisql~");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -75,8 +74,8 @@ public class Interpreter {
             }
 
             //after get the whole statement
-            String[] tokens = statement.toString().trim().split(" ");
             String result = statement.toString().trim().replaceAll("\\s+", " ");
+            String[] tokens = result.split(" ");
 
             if (tokens.length == 1 && tokens[0].equals("")) {
                 System.out.println("No statement specified");
@@ -139,11 +138,9 @@ public class Interpreter {
     }
 
     private static void parse_create_table(String statement) {
-        System.out.println("In parse_create_table..");
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.replaceAll(" *, *", ",");
         statement = statement.trim();
-
         statement = statement.replaceAll("^create table","").trim(); //skip create table keyword
 
         int startIndex, endIndex;
@@ -151,7 +148,6 @@ public class Interpreter {
             System.out.println("Syntax error: Must specify a table name");
             return;
         }
-
         endIndex = statement.indexOf(" ");
         if (endIndex == -1) { //no statement after create table xxx
             System.out.println("Syntax error: Can't find attribute definition");
@@ -159,13 +155,6 @@ public class Interpreter {
         }
 
         String tableName = statement.substring(0, endIndex); //get table name
-
-      /*
-        if (CatalogManager.get_table(tableName) != null) { //check whether it exists
-            System.out.println("Runtime error: Table " + tableName + "already existed");
-            return;
-        }*/
-
         startIndex = endIndex + 1; //start index of '('
         if (!statement.substring(startIndex).matches("^\\(.*\\)$")) { //check brackets
             System.out.println("Syntax error: Can't not find the definition brackets in table " + tableName);
@@ -173,14 +162,15 @@ public class Interpreter {
         }
 
         int length;
-        String[] attrsDefine, attrParas;
-        String attrName, attrType, attrLength = "", primaryName = "";
+        String[] attrParas;
+        String[] attrsDefine;
+        String attrName, attrType;
+        String attrLength = "", primaryName = "";
         boolean attrUnique;
         Attribute attribute;
         Vector<Attribute> attrVec = new Vector<>();
 
         attrsDefine = statement.substring(startIndex + 1).split(","); //get each attribute definition
-
         for (int i = 0; i < attrsDefine.length; i++) { //for each attribute
             if (i == attrsDefine.length - 1) { //last line
                 attrParas = attrsDefine[i].trim().substring(0, attrsDefine[i].length() - 1).split(" "); //remove last ')'
@@ -212,7 +202,6 @@ public class Interpreter {
                 }
                 attrName = attrParas[0]; //get attribute name
                 attrType = attrParas[1]; //get attribute type
-
                 for (int j = 0; j < attrVec.size(); j++) { //check whether name redefines
                     if (attrName.equals(attrVec.get(j).attributeName)) {
                         System.out.println("Logical error: Redefinition in attribute " + attrParas[0]);
@@ -271,27 +260,24 @@ public class Interpreter {
         }
         for (int j = 0; j < attrVec.size(); j++) {
             if (primaryName.equals(attrVec.get(j).attributeName)) { //check primary key matches one attribute
-                Table table = new Table(tableName, primaryName, attrVec);
-                System.out.println("Try to create the following table:");
-                System.out.println("Table name: " + tableName);
-                System.out.println("Primary key name: " + primaryName);
-                System.out.println("Attribute:");
-                for (int k = 0; k < attrVec.size(); k++) {
-                    System.out.print("Name: " + attrVec.get(k).attributeName + " ");
-                    System.out.print("Type: " + attrVec.get(k).type + " ");
-                    System.out.println("Unique: " + attrVec.get(k).isUnique + " ");
+                try {
+                    Table table = new Table(tableName, primaryName, attrVec); // create table
+                    API.create_table(tableName, table);
+                    System.out.println("-->Create table " + tableName + " successfully");
+                    return;
+                } catch (Exception e) {
+                    if (e instanceof QException) {
+                        System.out.println(e.getMessage());
+                    } else {
+                        System.out.println("Default error: " + e.getMessage());
+                    }
                 }
-                if (API.create_table(tableName, table)) {
-                    System.out.println("Create table successfully");
-                }
-                return;
             }
         }
         System.out.println("Logical error: No attribute name matches the primary key name");
     }
 
     private static void parse_drop_table(String statement) {
-        System.out.println("In parse_drop_table..");
         String[] tokens = statement.split(" ");
         if (tokens.length == 2) {
             System.out.println("Syntax error: Not specify table name");
@@ -301,28 +287,25 @@ public class Interpreter {
             System.out.println("Syntax error: Extra parameters in drop table");
             return;
         }
-
-        String tableName = tokens[2]; //get table name
-     /*  if(CatalogManager.get_table(tableName) == null) {
-            System.out.println("RunTime error: Table " + tableName + " dosen't exist");
-            return;
-        }*/
-
-        System.out.println("Try to drop the following table:");
-        System.out.println("Table name: " + tableName);
-        if (API.drop_table(tableName)) {
-            System.out.println("Drop table successfully");
+        try {
+            String tableName = tokens[2]; //get table name
+            API.drop_table(tableName);
+            System.out.println("-->Drop table" + tableName + " successfully");
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
+            }
         }
     }
 
     private static void parse_create_index(String statement) {
-        System.out.println("In parse_create_index..");
         statement = statement.replaceAll("\\s+", " ");
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.trim();
 
         String[] tokens = statement.split(" ");
-
         if (tokens.length == 2) {
             System.out.println("Syntax error: Not specify index name");
             return;
@@ -356,40 +339,21 @@ public class Interpreter {
             return;
         }
 
-    /*
-        if (CatalogManager.get_table(tableName) == null) {
-            System.out.println("Runtime error: Table " + tableName +" dosen't exist");
-            return;
-        }
-        if (CatalogManager.get_attribute_index(tableName, attrName) == -1){
-            System.out.println("Runtime error: The attribute " + attrName + " doesn't exist");
-            return;
-        }
-        if (CatalogManager.is_index_key(tableName, attrName)) {
-            System.out.println("Runtime error: The attribute " + attrName +
-                    " already has index " + CatalogManager.get_index_name(tableName, attrName));
-            return;
-        }
-        if (CatalogManager.is_unique(tableName , attrName)) {
-            System.out.println("Runtime error: The attribute " + attrName + "is not unique");
-            return;
-        } */
-
-
-        Index index = new Index (indexName, tableName, attrName);
-        System.out.println("Try to create index");
-        System.out.println("Index name: " + indexName);
-        System.out.println("Table name: " + tableName);
-        System.out.println("Attribute name: " + attrName);
-        if (API.create_index(index)) {
-            System.out.println("Create index successfully");
+        try {
+            Index index = new Index (indexName, tableName, attrName);
+            API.create_index(index);
+            System.out.println("-->Create index " + indexName + " successfully");
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
+            }
         }
     }
 
     private static void parse_drop_index(String statement) {
-        System.out.println("In parse_drop_index..");
         String[] tokens = statement.split(" ");
-
         if (tokens.length == 2) {
             System.out.println("Syntax error: Not specify index name");
             return;
@@ -398,22 +362,20 @@ public class Interpreter {
             System.out.println("Syntax error: Extra parameters in drop index");
             return;
         }
-
-        String indexName = tokens[2]; //get table name
-
-        System.out.println("Try to drop the following index:");
-        System.out.println("Index name: " + indexName);
-
-        //need to check whether it's an index?
-        if (API.drop_index(indexName)) {
-            System.out.println("Drop index successfully");
+        try {
+            String indexName = tokens[2]; //get table name
+            API.drop_index(indexName);
+            System.out.println("-->Drop index" + indexName + " successfully");
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
+            }
         }
-
-
     }
 
     private static void parse_select(String statement) {
-        //System.out.println("In parse_select..");
         //select ... from ... where ...
         try {
             String attrStr = Utils.substring(statement, "select ", " from");
@@ -460,7 +422,6 @@ public class Interpreter {
     }
 
     private static void parse_insert(String statement) {
-        System.out.println("In parse_insert..");
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.replaceAll(" *, *", ",");
         statement = statement.trim();
@@ -490,12 +451,10 @@ public class Interpreter {
         }
 
         String tableName = statement.substring(startIndex, endIndex); //get table name
-
-        /*
         if (CatalogManager.get_table(tableName) == null) {
             System.out.println("RunTime error: The table " + tableName +" dosen't exist");
             return;
-        }*/
+        }
 
         startIndex = endIndex + 1;
         endIndex = statement.indexOf(" ", startIndex); //check values keyword
@@ -516,10 +475,10 @@ public class Interpreter {
 
         String[] valueParas = statement.substring(startIndex + 1).split(","); //get attribute tokens
         TableRow tableRow = new TableRow();
-/*
+
         if(valueParas.length != CatalogManager.get_attribute_num(tableName)) {
             System.out.println("Logical error: Number of attribute mismatch");
-        }*/
+        }
 
         for (int i = 0;i < valueParas.length;i++) {
             if (i == valueParas.length - 1) { //last attribute
@@ -536,7 +495,7 @@ public class Interpreter {
                 return;
             }
 
- /*         String type = CatalogManager.get_type(tableName, i);
+            String type = CatalogManager.get_type(tableName, i);
             switch (type) { //check type
                 case "INT":
                     try {
@@ -562,18 +521,19 @@ public class Interpreter {
                 default:
                     System.out.println("RunTime error: Can't identify the type");
                     return;
-            }*/
+            }
             tableRow.add_attribute_value(valueParas[i]); //add to table row
         }
-        System.out.println("Try to insert");
-        System.out.println("Table name: " + tableName);
-        System.out.println("Attribute value:");
-        for(int i = 0;i < tableRow.get_attribute_size();i++) {
-            System.out.println(tableRow.get_attribute_value(i)+" ");
-        }
 
-        if (API.insert_row(tableName,tableRow)) {
-            System.out.println("Insert successfully");
+        try {
+            API.insert_row(tableName,tableRow);
+            System.out.println("-->Insert successfully");
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
+            }
         }
     }
 
@@ -604,21 +564,17 @@ public class Interpreter {
         }
     }
 
-
     private static void parse_quit(String statement, BufferedReader reader) {
-        System.out.println("In parse_quit\n");
         String[] tokens = statement.split(" ");
-
         if (tokens.length != 1) {
             System.out.println("Syntax error: Extra parameters in quit");
             return;
         }
-        System.out.println("Try to quit program");
-
         try{
             CatalogManager.store_catalog();
             RecordManager.store_record();
             reader.close();
+            System.out.println("Bye");
             System.exit(0);
         } catch (IOException e) {
             System.out.println("RunTime error: can't close the input stream");
@@ -626,14 +582,11 @@ public class Interpreter {
     }
 
     private static void parse_sql_file(String statement) {
-        System.out.println("In parse_sql_file\n");
         String[] tokens = statement.split(" ");
-
         if (tokens.length != 2) {
             System.out.println("Syntax error: Extra parameters in sql file execution");
             return;
         }
-
         String fileName = tokens[1];
         try {
             BufferedReader fileReader = new BufferedReader(new FileReader(fileName));
@@ -641,7 +594,6 @@ public class Interpreter {
                 System.out.println("Can't use nested file execution");
             } else {
                 nestLock = true; //lock, avoid nested execution
-                System.out.println("Try to execute sql file:");
                 interpret(fileReader);
             }
         } catch (FileNotFoundException e) {
@@ -652,7 +604,6 @@ public class Interpreter {
             nestLock = false; //unlock
         }
     }
-    
 }
 
 class Utils {
