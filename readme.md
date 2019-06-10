@@ -35,6 +35,8 @@
 | 2019-06-09 | zjs  | 修改API中的delete_row函数 |
 | 2019-06-09 | stl  | 修改API中的drop_index参数为indexName |
 | 2019-06-09 | ycj yrj | Interpreter模块实现 |
+| 2019-06-10 | yrj  | 修改RecordManager中delete函数，删除对应索引 |
+
 
 ------------------------------
 
