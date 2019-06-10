@@ -413,51 +413,50 @@ public class Interpreter {
     private static void parse_select(String statement) {
         //System.out.println("In parse_select..");
         //select ... from ... where ...
-        String attrStr = Utils.substring(statement, "select ", " from");
-        String tabStr = Utils.substring(statement, "from ", " where");
-        String conStr = Utils.substring(statement, "where ", "");
-        Vector<Condition> conditions;
-        Vector<String> attrNames;
-        if (attrStr.equals("")) {
-            System.out.println("Syntax error: Can not find key word 'from' or lack of blank before from!");
-            return;
-        }
-        if (attrStr.trim().equals("*")) {
-            //select all attributes
-            if (tabStr.equals("")) {  // select * from [];
-                tabStr = Utils.substring(statement, "from ", "");
-                Vector<TableRow> ret = API.select(tabStr, new Vector<>(), new Vector<>());
-                for (int i = 0; i < ret.size(); i++) Utils.printRow(ret.get(i));
-            } else { //select * from [] where [];
-                String[] conSet = conStr.split(" *and *");
-                //get condition vector
-                try {
+        try {
+            String attrStr = Utils.substring(statement, "select ", " from");
+            String tabStr = Utils.substring(statement, "from ", " where");
+            String conStr = Utils.substring(statement, "where ", "");
+            Vector<Condition> conditions;
+            Vector<String> attrNames;
+            if (attrStr.equals(""))
+                throw new QException(0, 250, "Can not find key word 'from' or lack of blank before from!");
+            if (attrStr.trim().equals("*")) {
+                //select all attributes
+                if (tabStr.equals("")) {  // select * from [];
+                    tabStr = Utils.substring(statement, "from ", "");
+                    Vector<TableRow> ret = API.select(tabStr, new Vector<>(), new Vector<>());
+                    Utils.print_rows(ret);
+                } else { //select * from [] where [];
+                    String[] conSet = conStr.split(" *and *");
+                    //get condition vector
                     conditions = Utils.create_conditon(conSet);
                     Vector<TableRow> ret = API.select(tabStr, new Vector<>(), conditions);
-                    for (int i = 0; i < ret.size(); i++) Utils.printRow(ret.get(i));
-                } catch (Exception e) {
-                    System.out.print(e.getMessage());
+                    Utils.print_rows(ret);
+                }
+            } else {
+                attrNames = Utils.convert(attrStr.split(" *, *")); //get attributes list
+                if (tabStr.equals("")) {  //select [attr] from [];
+                    tabStr = Utils.substring(statement, "from ", "");
+                    Vector<TableRow> ret = API.select(tabStr, attrNames, new Vector<>());
+                    Utils.print_rows(ret);
+                } else { //select [attr] from [table] where
+                    String[] conSet = conStr.split(" *and *");
+                    //get condition vector
+                    conditions = Utils.create_conditon(conSet);
+                    Vector<TableRow> ret = API.select(tabStr, attrNames, conditions);
+                    Utils.print_rows(ret);
                 }
             }
-        } else {
-            attrNames = Utils.convert(attrStr.split(" *, *")); //get attributes list
-            if (tabStr.equals("")) {  //select [attr] from [];
-                tabStr = Utils.substring(statement, "from ", "");
-                Vector<TableRow> ret = API.select(tabStr, attrNames, new Vector<>());
-                for (int i = 0; i < ret.size(); i++) Utils.printRow(ret.get(i));
-            } else { //select [attr] from [table] where
-                String[] conSet = conStr.split(" *and *");
-                //get condition vector
-                try {
-                    conditions = Utils.create_conditon(conSet);
-                    Vector<TableRow> ret =  API.select(tabStr, attrNames, conditions);
-                    for (int i = 0; i < ret.size(); i++) Utils.printRow(ret.get(i));
-                } catch (Exception e) {
-                    System.out.print(e.getMessage());
-                }
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
             }
         }
     }
+
 
 
 
@@ -702,6 +701,34 @@ class Utils {
             System.out.print(row.get_attribute_value(i) + "\t");
         }
         System.out.println();
+    }
+
+    public static int get_max_attr_length(Vector<TableRow> tab, int index) {
+        int len = 0;
+        for (int i = 0; i < tab.size(); i++) {
+            int v = tab.get(i).get_attribute_value(index).length();
+            len = v > len ? v : len;
+        }
+        return len;
+    }
+
+    public static void print_rows(Vector<TableRow> tab) {
+        if (tab.size() == 0) {
+            System.out.println("-->Query ok! 0 rows are selected");
+            return;
+        }
+        int attrSize = tab.get(0).get_attribute_size();
+        Vector<Integer> v = new Vector<>(attrSize);
+        for (int j = 0; j < attrSize; j++) v.add(get_max_attr_length(tab, j));
+        for (int i = 0; i < tab.size(); i++) {
+            TableRow row = tab.get(i);
+            for (int j = 0; j < attrSize; j++) {
+                String format = "|%-" + v.get(j) + "s";
+                System.out.printf(format, row.get_attribute_value(j));
+            }
+            System.out.print("|\n");
+        }
+        System.out.println("-->Query ok! " + tab.size() + " rows are selected ");
     }
 
 }

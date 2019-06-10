@@ -36,7 +36,7 @@
 | 2019-06-09 | stl  | 修改API中的drop_index参数为indexName |
 | 2019-06-09 | ycj yrj | Interpreter模块实现 |
 | 2019-06-10 | yrj  | 修改RecordManager中delete函数，删除对应索引 |
-
+| 2019-06-10 | ycj  | 优化查询输出，增加QException类 |
 
 ------------------------------
 
