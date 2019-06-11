@@ -3,9 +3,11 @@ import CATALOGMANAGER.CatalogManager;
 import CATALOGMANAGER.NumType;
 import CATALOGMANAGER.Table;
 import INDEXMANAGER.Index;
+import INDEXMANAGER.IndexManager;
 import RECORDMANAGER.Condition;
 import RECORDMANAGER.RecordManager;
 import RECORDMANAGER.TableRow;
+import org.w3c.dom.Attr;
 
 import java.io.*;
 import java.util.Vector;
@@ -279,6 +281,8 @@ public class Interpreter {
         attrName = attrName.substring(1, attrName.length() - 1); //extract attribute name
         if (tokens.length != 6)
             throw new QException(0, 706, "Extra parameters in create index");
+        if (!CatalogManager.is_unique(tableName, attrName))
+            throw new QException(1, 707, "Not a unique attribute");
 
         Index index = new Index(indexName, tableName, attrName);
         API.create_index(index);
@@ -347,20 +351,20 @@ public class Interpreter {
 
         endIndex = statement.indexOf(" "); //check into keyword
         if (endIndex == -1)
-            throw new QException(0, 902, "Not specfiy the table name");
+            throw new QException(0, 902, "Not specify the table name");
         if (!statement.substring(0, endIndex).equals("into"))
             throw new QException(0, 903, "Must add keyword 'into' after insert");
 
         startIndex = endIndex + 1;
         endIndex = statement.indexOf(" ", startIndex); //check table name
         if (endIndex == -1)
-            throw new QException(0, 904, "Not specfiy the insert value");
+            throw new QException(0, 904, "Not specify the insert value");
 
         String tableName = statement.substring(startIndex, endIndex); //get table name
         startIndex = endIndex + 1;
         endIndex = statement.indexOf(" ", startIndex); //check values keyword
         if (endIndex == -1)
-            throw new QException(0, 905, "Syntax error: Not specfiy the insert value");
+            throw new QException(0, 905, "Syntax error: Not specify the insert value");
 
         if (!statement.substring(startIndex, endIndex).equals("values"))
             throw new QException(0, 906, "Must add keyword 'values' after table " + tableName);
@@ -381,6 +385,33 @@ public class Interpreter {
                 valueParas[i] = valueParas[i].substring(1, valueParas[i].length() - 1);
             tableRow.add_attribute_value(valueParas[i]); //add to table row
         }
+
+        //Check unique attributes
+        if (tableRow.get_attribute_size() != CatalogManager.get_attribute_num(tableName))
+            throw new QException(1, 909, "Attribute number doesn't match");
+        Vector<Attribute> attributes = CatalogManager.get_table(tableName).attributeVector;
+        for (int i = 0; i < attributes.size(); i++) {
+            Attribute attr = attributes.get(i);
+            if (attr.isUnique) {
+                Condition cond = new Condition(attr.attributeName, "=", valueParas[i]);
+                if (CatalogManager.is_index_key(tableName, attr.attributeName)) {
+                    Index idx = CatalogManager.get_index(CatalogManager.get_index_name(tableName, attr.attributeName));
+                    try {
+                        IndexManager.select(idx, cond);
+                    } catch (IllegalArgumentException e) {
+                        continue;
+                    }
+                } else {
+                    Vector<Condition> conditions = new Vector<>();
+                    conditions.add(cond);
+                    Vector<TableRow> res = RecordManager.select(tableName, conditions); //Supposed to be empty
+                    if (res.isEmpty())
+                        continue;
+                }
+                throw new QException(1, 910, "Duplicate unique key " + attr.attributeName);
+            }
+        }
+
         API.insert_row(tableName, tableRow);
         System.out.println("-->Insert successfully");
     }
