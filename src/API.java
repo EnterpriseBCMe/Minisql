@@ -55,7 +55,7 @@ public class API {
     }
 
     public static boolean create_index(Index index) throws Exception {
-        if (CatalogManager.create_index(index) && IndexManager.create_index(index)) return true;
+        if (IndexManager.create_index(index) && CatalogManager.create_index(index)) return true;
         throw new QException(1, 506, "Failed to create index " + index.attributeName + " on table " + index.tableName);
     }
 
