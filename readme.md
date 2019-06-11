@@ -25,7 +25,7 @@
 | 2019-06-06 | ycj  | 增加interpreter & API 文件 |
 | 2019-06-06 | ycj  | 修改整体架构 |
 | 2019-06-07 | zjs  | BPTree修改：增加不等值查找 |
-| 2019-06-07 | stl  | 增加IndexManager，修复BPTree |
+| 2019-06-07 | zjs stl  | 增加IndexManager，修复BPTree |
 | 2019-06-07 | yrj  | 修改RecordManager，增加地址操作的条件参数 |
 | 2019-06-08 | ycj  | 修改BufferManager，初始化使用静态函数而不是使用构造函数 |
 | 2019-06-08 | stl  | 修复API中table、index创建和删除的bug |
@@ -42,6 +42,7 @@
 | 2019-06-11 | zjs  | Interpreter模块增加create_index时的unique key判断 |
 | 2019-06-11 | stl  | 修改show_tables和show_indexes的输出 |
 | 2018-06-11 | yrj  | Interpreter模块异常处理优化，增加计时处理 |
+| 2019-06-12 | zjs  | Interpreter少量bug优化 |
 
 ------------------------------
 
