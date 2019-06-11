@@ -136,54 +136,55 @@ public class CatalogManager {
         show_index();
     }
 
-    private static void show_index() {
+    public static void show_index() {
         Index tmpIndex;
-        //Enumeration<Index> en = indexes.elements();
         Iterator<Map.Entry<String, Index>> iter = indexes.entrySet().iterator();
-        int row = 1;
-        System.out.println("There are " + indexes.size() + " indexes in the database: ");
-        System.out.println("\tIndex name\tTable name\tAttribute name:");
+        int idx = 5, tab = 5, attr = 9;
+        //System.out.println("There are " + indexes.size() + " indexes in the database: ");
         while (iter.hasNext()) {
             Map.Entry entry = iter.next();
             tmpIndex = (Index) entry.getValue();
-            //tmpIndex = en.nextElement();
-            System.out.println(row++ + "\t" + tmpIndex.indexName + "\t\t" + tmpIndex.tableName + "\t\t" + tmpIndex.attributeName);
+            idx = tmpIndex.indexName.length() > idx ? tmpIndex.indexName.length() : idx;
+            tab = tmpIndex.tableName.length() > tab ? tmpIndex.tableName.length() : tab;
+            attr = tmpIndex.attributeName.length() > attr ? tmpIndex.attributeName.length() : attr;
         }
+        String format = "|%-" + idx + "s|%-" + tab + "s|%-" + attr + "s|\n";
+        iter = indexes.entrySet().iterator();
+        System.out.printf(format, "INDEX", "TABLE", "ATTRIBUTE");
+        while (iter.hasNext()) {
+            Map.Entry entry = iter.next();
+            tmpIndex = (Index) entry.getValue();
+            System.out.printf(format, tmpIndex.indexName, tmpIndex.tableName, tmpIndex.attributeName);
+        }
+
     }
 
-    private static void show_table() {
+    public static int get_max_attr_length(Table tab) {
+        int len = 9;//the size of "ATTRIBUTE"
+        for (int i = 0; i < tab.attributeVector.size(); i++) {
+            int v = tab.attributeVector.get(i).attributeName.length();
+            len = v > len ? v : len;
+        }
+        return len;
+    }
+
+    public static void show_table() {
         Table tmpTable;
-        Index tmpIndex;
         Attribute tmpAttribute;
-        //Enumeration<Table> en = tables.elements();
         Iterator<Map.Entry<String, Table>> iter = tables.entrySet().iterator();
-        int tableNum = 1;
-        System.out.println("There are " + tables.size() + " tables in the database: ");
+        //System.out.println("There are " + tables.size() + " tables in the database: ");
         while (iter.hasNext()) {
-            //tmpTable = en.nextElement();
             Map.Entry entry = iter.next();
             tmpTable = (Table) entry.getValue();
-            System.out.println("\n===========TABLE " + tableNum++);
-            System.out.println("Table name: " + tmpTable.tableName);
-            System.out.println("Number of Columns: " + tmpTable.attributeNum);
-            System.out.println("Primary key: " + tmpTable.primaryKey);
-            System.out.println("Number of rows: " + tmpTable.rowNum);
-            System.out.println("Number of Indexes : " + tmpTable.indexNum);
-            System.out.println("\tIndex name\tTable name\tAttribute name:");
-
-
-            for (int i = 0; i < tmpTable.indexNum; i++) {
-                tmpIndex = tmpTable.indexVector.get(i);
-                System.out.println("\t" + tmpIndex.indexName + "\t\t" + tmpIndex.tableName + "\t\t" + tmpIndex.attributeName);
-            }
-            System.out.println("Attributes: " + tmpTable.attributeNum);
-            //System.out.println("\tAttribute name\tType\tlength\tisUnique");
-            System.out.printf("|%-10s|%-5s|%-6s|%-6s|\n","ATTRIBUTE","TYPE","LENGTH","UNIQUE");
+            System.out.println("[TABLE] " + tmpTable.tableName);
+            String format = "|%-" + get_max_attr_length(tmpTable) + "s";
+            format += "|%-5s|%-6s|%-6s|\n";
+            System.out.printf(format, "ATTRIBUTE", "TYPE", "LENGTH", "UNIQUE");
             for (int i = 0; i < tmpTable.attributeNum; i++) {
                 tmpAttribute = tmpTable.attributeVector.get(i);
-                //System.out.println("\t" + tmpAttribute.attributeName + "\t\t\t" + tmpAttribute.type.get_type() + "\t\t" + tmpAttribute.type.get_length() + "\t\t" + tmpAttribute.isUnique);
-                System.out.printf("|%-10s|%-5s|%-6s|%-6s|\n",tmpAttribute.attributeName,tmpAttribute.type.get_type(), tmpAttribute.type.get_length(),tmpAttribute.isUnique);
+                System.out.printf(format, tmpAttribute.attributeName, tmpAttribute.type.get_type(), tmpAttribute.type.get_length(), tmpAttribute.isUnique);
             }
+            if (iter.hasNext()) System.out.println("--------------------------------");
         }
     }
 

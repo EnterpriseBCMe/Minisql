@@ -137,9 +137,9 @@ public class Interpreter {
     private static void parse_show(String statement) throws Exception {
         String type = Utils.substring(statement, "show ", "").trim();
         if (type.equals("tables")) {
-            CatalogManager.show_catalog();
+            CatalogManager.show_table();
         } else if (type.equals("indexes")) {
-            CatalogManager.show_catalog();
+            CatalogManager.show_index();
         } else throw new QException(0, 323, "Can not find valid key word after 'show'!");
     }
 
