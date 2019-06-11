@@ -40,6 +40,7 @@
 | 2019-06-10 | yrj  | Interpreter模块增加异常处理 |
 | 2019-06-11 | zjs  | Interpreter模块增加insert时的unique key重复判断 |
 | 2019-06-11 | zjs  | Interpreter模块增加create_index时的unique key判断 |
+| 2019-06-11 | stl  | 修改show_tables和show_indexes的输出 |
 
 ------------------------------
 
