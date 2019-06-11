@@ -101,11 +101,7 @@ public class Interpreter {
                         }
                         break;
                     case "select":
-                        long startTime = System.currentTimeMillis();
                         parse_select(result);
-                        long endTime = System.currentTimeMillis();
-                        double usedTime = (endTime - startTime) / 1000.0;
-                        System.out.println("Finished in " + usedTime + " s");
                         break;
                     case "insert":
                         parse_insert(result);
@@ -307,6 +303,8 @@ public class Interpreter {
         String conStr = Utils.substring(statement, "where ", "");
         Vector<Condition> conditions;
         Vector<String> attrNames;
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         if (attrStr.equals(""))
             throw new QException(0, 250, "Can not find key word 'from' or lack of blank before from!");
         if (attrStr.trim().equals("*")) {
@@ -314,12 +312,14 @@ public class Interpreter {
             if (tabStr.equals("")) {  // select * from [];
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), new Vector<>());
+                endTime = System.currentTimeMillis();
                 Utils.print_rows(ret);
             } else { //select * from [] where [];
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
                 conditions = Utils.create_conditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), conditions);
+                endTime = System.currentTimeMillis();
                 Utils.print_rows(ret);
             }
         } else {
@@ -327,15 +327,19 @@ public class Interpreter {
             if (tabStr.equals("")) {  //select [attr] from [];
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, attrNames, new Vector<>());
+                endTime = System.currentTimeMillis();
                 Utils.print_rows(ret);
             } else { //select [attr] from [table] where
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
                 conditions = Utils.create_conditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, attrNames, conditions);
+                endTime = System.currentTimeMillis();
                 Utils.print_rows(ret);
             }
         }
+        double usedTime = (endTime - startTime) / 1000.0;
+        System.out.println("Finished in " + usedTime + " s");
     }
 
     private static void parse_insert(String statement) throws Exception {
@@ -395,11 +399,8 @@ public class Interpreter {
                 Condition cond = new Condition(attr.attributeName, "=", valueParas[i]);
                 if (CatalogManager.is_index_key(tableName, attr.attributeName)) {
                     Index idx = CatalogManager.get_index(CatalogManager.get_index_name(tableName, attr.attributeName));
-                    try {
-                        IndexManager.select(idx, cond);
-                    } catch (IllegalArgumentException e) {
+                    if (IndexManager.select(idx, cond).isEmpty())
                         continue;
-                    }
                 } else {
                     Vector<Condition> conditions = new Vector<>();
                     conditions.add(cond);
@@ -407,7 +408,7 @@ public class Interpreter {
                     if (res.isEmpty())
                         continue;
                 }
-                throw new QException(1, 910, "Duplicate unique key " + attr.attributeName);
+                throw new QException(1, 910, "Duplicate unique key: " + attr.attributeName);
             }
         }
 
@@ -453,16 +454,16 @@ public class Interpreter {
         String fileName = tokens[1];
         try {
             BufferedReader fileReader = new BufferedReader(new FileReader(fileName));
-            if (nestLock)  //first enter in sql file execution
-                throw new QException(0, 1102, "Can't use nested file execution");
-            nestLock = true; //lock, avoid nested execution
+//            if (nestLock)  //first enter in sql file execution
+//                throw new QException(0, 1102, "Can't use nested file execution");
+//            nestLock = true; //lock, avoid nested execution
             interpret(fileReader);
         } catch (FileNotFoundException e) {
             throw new QException(1, 1103, "Can't find the file");
         } catch (IOException e) {
             throw new QException(1, 1104, "IO exception occurs");
         } finally {
-            nestLock = false; //unlock
+//            nestLock = false; //unlock
         }
     }
 }
