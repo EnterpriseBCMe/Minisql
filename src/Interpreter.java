@@ -131,10 +131,31 @@ public class Interpreter {
                 case "exefile":
                     parse_sql_file(result);
                     break;
+                case "show":
+                    parse_show(result);
+                    break;
                 default:
                     System.out.println("Syntax error: Can't identify " + tokens[0]);
             }
         }
+    }
+
+    private static void parse_show(String statement) {
+        try {
+            String type = Utils.substring(statement,"show ","").trim();
+            if (type.equals("tables")) {
+                CatalogManager.show_catalog();
+            } else if (type.equals("indexes")) {
+                CatalogManager.show_catalog();
+            } else throw new QException(0,323,"Can not find valid key word after 'show'!");
+        } catch (Exception e) {
+            if (e instanceof QException) {
+                System.out.println(e.getMessage());
+            } else {
+                System.out.println("Default error: " + e.getMessage());
+            }
+        }
+
     }
 
     private static void parse_create_table(String statement) {
