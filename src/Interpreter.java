@@ -7,7 +7,6 @@ import INDEXMANAGER.IndexManager;
 import RECORDMANAGER.Condition;
 import RECORDMANAGER.RecordManager;
 import RECORDMANAGER.TableRow;
-import org.w3c.dom.Attr;
 
 import java.io.*;
 import java.util.Vector;
@@ -18,13 +17,9 @@ public class Interpreter {
 
     private static boolean nestLock = false; //not permit to use nesting sql file execution
 
-    public Interpreter() {
-
-    }
-
     public static void main(String[] args) {
         try {
-            API api = new API();
+            API.initial();
             System.out.println("Weclome to minisql~");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             interpret(reader);
@@ -106,7 +101,11 @@ public class Interpreter {
                         }
                         break;
                     case "select":
+                        long startTime = System.currentTimeMillis();
                         parse_select(result);
+                        long endTime = System.currentTimeMillis();
+                        double usedTime = (endTime - startTime) / 1000.0;
+                        System.out.println("Finished in " + usedTime + " s");
                         break;
                     case "insert":
                         parse_insert(result);
@@ -440,8 +439,7 @@ public class Interpreter {
         if (tokens.length != 1)
             throw new QException(0, 1001, "Extra parameters in quit");
 
-        CatalogManager.store_catalog();
-        RecordManager.store_record();
+        API.store();
         reader.close();
         System.out.println("Bye");
         System.exit(0);

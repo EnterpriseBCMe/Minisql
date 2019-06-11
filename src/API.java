@@ -11,14 +11,19 @@ import java.util.Vector;
 
 public class API {
 
-    public API() throws Exception {
-        try {
-            BufferManager.initial_buffer();  //init Buffer Manager
-            CatalogManager.initial_catalog();  //init Catalog Manager
-            IndexManager.initial_index(); //init Index Manager
-        } catch (Exception e) {
-            throw new QException(1, 500, "Failed to initialize API!");
-        }
+    public static void initial() throws Exception {
+	    try {
+		    BufferManager.initial_buffer();  //init Buffer Manager
+		    CatalogManager.initial_catalog();  //init Catalog Manager
+		    IndexManager.initial_index(); //init Index Manager
+	    } catch (Exception e) {
+		    throw new QException(1, 500, "Failed to initialize API!");
+	    }
+    }
+
+    public static void store() throws Exception {
+	    CatalogManager.store_catalog();
+	    RecordManager.store_record();
     }
 
     public static boolean create_table(String tabName, Table tab) throws Exception {

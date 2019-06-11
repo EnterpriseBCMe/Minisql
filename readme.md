@@ -41,6 +41,7 @@
 | 2019-06-11 | zjs  | Interpreter模块增加insert时的unique key重复判断 |
 | 2019-06-11 | zjs  | Interpreter模块增加create_index时的unique key判断 |
 | 2019-06-11 | stl  | 修改show_tables和show_indexes的输出 |
+| 2018-06-11 | yrj  | Interpreter模块异常处理优化，增加计时处理 |
 
 ------------------------------
 
@@ -226,7 +227,7 @@
 + public static void store_catalog() throws IOException；//将内存中所有信息的写入文件
 + public static void show_catalog()；//打印内存中table和index的信息
 
- //通过表名获得Table类对象的信息 
+ //通过表名获得Table类对象的信息
 + public static Table get_table(String tableName)；
 + public static Index get_index(String indexName)；
 + public static String get_primary_key(String tableName)；
@@ -399,4 +400,3 @@
 //删除索引（文件）
 + public static boolean drop_index(Index idx);
 ```
-
