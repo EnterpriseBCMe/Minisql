@@ -422,7 +422,7 @@ public class RecordManager {
     //check whether the tuple statisfy the table attribute definition
     private static boolean check_row(String tableName, TableRow data) throws Exception{
         if (CatalogManager.get_attribute_num(tableName) != data.get_attribute_size())
-            throw new IllegalArgumentException("Attribute number dosen't match");
+            throw new IllegalArgumentException("Attribute number doesn't match");
 
         for (int i = 0;i < data.get_attribute_size();i++) {
             String type = CatalogManager.get_type(tableName, i);
