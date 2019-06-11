@@ -9,13 +9,17 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         this.root = new LeafNode<>(order);
     }
 
-    public Vector<V> find_eq(K key) throws IllegalArgumentException {
+    public Vector<V> find_eq(K key) {
         Vector<V> res = new Vector<>();
-        res.add(this.root.find(key));
+        try {
+            res.add(this.root.find(key));
+        } catch (IllegalArgumentException e) {
+            //do nothing
+        }
         return res;
     }
 
-    public Vector<V> find_neq(K key) throws IllegalArgumentException {
+    public Vector<V> find_neq(K key) {
         Vector<V> res = new Vector<>();
         if (this.root != null) {
             LeafNode<K, V> leaf = this.root.get_first_leaf();
@@ -623,7 +627,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         public void update(K key, V value) throws IllegalArgumentException {
             int index = find_index(key);
             if (index >= this.cnt || !this.keys[index].equals(key)) {
-                throw new IllegalArgumentException(); //not found
+                throw new IllegalArgumentException("Key " + key + " not found"); //not found
             }
             this.values[index] = value;
         }
@@ -633,7 +637,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
             //Find the index of the key (binary search)
             int index = find_index(key);
             if (index < this.cnt && this.keys[index].equals(key)) {
-                throw new IllegalArgumentException(); //already exists
+                throw new IllegalArgumentException("Key " + key + " already exists"); //already exists
             }
             if (this.cnt < this.order) { //needn't split
                 this.insert_into_array(key, value, index);
@@ -707,7 +711,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         public Node<K, V> delete(K key) throws IllegalArgumentException {
             int index = this.find_index(key);
             if (!this.keys[index].equals(key)) {
-                throw new IllegalArgumentException("Illegal key " + key);
+                throw new IllegalArgumentException("Key " + key + " not found");
             }
             this.delete_from_array(index);
 
