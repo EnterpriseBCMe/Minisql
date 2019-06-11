@@ -1,4 +1,4 @@
-package test;
+/*package test;
 
 import BUFFERMANAGER.BufferManager;
 import CATALOGMANAGER.*;
@@ -114,4 +114,4 @@ public class TestRecord {
         System.out.println("Select address end.....\n");
     }
 
-}
+}*/

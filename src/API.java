@@ -81,8 +81,12 @@ public class API {
             }
             CatalogManager.add_row_num(tabName);  //update number of records in catalog        return true;
             return true;
+        } catch (NullPointerException e){
+	        throw new QException(1, 508, "Table " + tabName + " does not exist!");
+        } catch (IllegalArgumentException e) {
+        	throw new QException(1, 509, e.getMessage());
         } catch (Exception e) {
-            throw new QException(1, 508, "RUNTIME ERROR: Failed to insert a row on table " + tabName);
+            throw new QException(1, 510, "Failed to insert a row on table " + tabName);
         }
     }
 
@@ -97,38 +101,66 @@ public class API {
                 if (addresses != null) {
                     numberOfRecords = RecordManager.delete(addresses, conditions);
                 }
+            } catch (NullPointerException e) {
+	            throw new QException(1, 511, "Table " + tabName + " does not exist!");
+            } catch (IllegalArgumentException e) {
+	            throw new QException(1, 512, e.getMessage());
             } catch (Exception e) {
-                throw new QException(1, 509, "Failed to delete on table " + tabName);
+                throw new QException(1, 513, "Failed to delete on table " + tabName);
             }
         } else {
-            numberOfRecords = RecordManager.delete(tabName, conditions);
+            try {
+            	numberOfRecords = RecordManager.delete(tabName, conditions);
+            }  catch (NullPointerException e) {
+	            throw new QException(1, 514, "Table " + tabName + " does not exist!");
+            } catch (IllegalArgumentException e) {
+	            throw new QException(1, 515, e.getMessage());
+            }
         }
         CatalogManager.delete_row_num(tabName, numberOfRecords);
         return numberOfRecords;
     }
 
     public static Vector<TableRow> select(String tabName, Vector<String> attriName, Vector<Condition> conditions) throws Exception {
-        Vector<TableRow> resultSet = new Vector<>();
-        Condition condition = API.find_index_condition(tabName, conditions);
-        if (condition != null) {
-            try {
-                String indexName = CatalogManager.get_index_name(tabName, condition.get_name());
-                Index idx = CatalogManager.get_index(indexName);
-                Vector<Address> addresses = IndexManager.select(idx, condition);
-                if (addresses != null) {
-                    resultSet = RecordManager.select(addresses, conditions);
-                }
-            } catch (Exception e) {
-                throw new QException(1, 510, "Failed to select from table " + tabName);
-            }
-        } else {
-            resultSet = RecordManager.select(tabName, conditions);
-        }
-        if (!attriName.isEmpty()) {
-            return RecordManager.project(tabName, resultSet, attriName);
-        } else {
-            return resultSet;
-        }
+	    Vector<TableRow> resultSet = new Vector<>();
+	    Condition condition = API.find_index_condition(tabName, conditions);
+	    if (condition != null) {
+		    try {
+			    String indexName = CatalogManager.get_index_name(tabName, condition.get_name());
+			    Index idx = CatalogManager.get_index(indexName);
+			    Vector<Address> addresses = IndexManager.select(idx, condition);
+			    if (addresses != null) {
+				    resultSet = RecordManager.select(addresses, conditions);
+			    }
+		    } catch (NullPointerException e) {
+			    throw new QException(1, 516, "Table " + tabName + " does not exist!");
+		    } catch (IllegalArgumentException e) {
+			    throw new QException(1, 517, e.getMessage());
+		    } catch (Exception e) {
+			    throw new QException(1, 518, "Failed to select from table " + tabName);
+		    }
+	    } else {
+		    try {
+			    resultSet = RecordManager.select(tabName, conditions);
+		    } catch (NullPointerException e) {
+			    throw new QException(1, 519, "Table " + tabName + " does not exist!");
+		    } catch (IllegalArgumentException e) {
+			    throw new QException(1, 520, e.getMessage());
+		    }
+	    }
+
+	    if (!attriName.isEmpty()) {
+		    try {
+			    return RecordManager.project(tabName, resultSet, attriName);
+		    } catch (NullPointerException e) {
+			    throw new QException(1, 521, "Table " + tabName + " does not exist!");
+		    } catch (IllegalArgumentException e) {
+			    throw new QException(1, 522, e.getMessage());
+		    }
+	    } else {
+		    return resultSet;
+	    }
+
     }
 
     private static Condition find_index_condition(String tabName, Vector<Condition> conditions) throws Exception {
@@ -142,5 +174,6 @@ public class API {
         }
         return condition;
     }
+
 
 }

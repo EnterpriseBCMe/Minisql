@@ -16,37 +16,36 @@ import java.util.Vector;
 public class RecordManager {
 
     //create a file for new table, return true if success, otherwise return false
-    public static boolean create_table(String tableName) {
+    public static boolean create_table(String tableName) throws Exception{
         try {
             File file =new File(tableName);
             if (!file.createNewFile()) //file already exists
-                return false;
+                throw new NullPointerException();
             Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
             if(block == null) { //can't get from buffer
-                return false;
+                throw new NullPointerException();
             } else {
                 block.write_integer(0, -1); //write to free list head, -1 means no free space
                 return true;
             }
         } catch(Exception e) {
-            System.out.println(e.getMessage());
             return false;
         }
     }
 
     //delete the file of given table, return true if success, otherwise return false
-    public static boolean drop_table(String tableName) {
+    public static boolean drop_table(String tableName) throws Exception {
         File file =new File(tableName);
         if(file.delete()) { //delete the file
             BufferManager.make_invalid(tableName); // set the block invalid
             return true;
         } else {
-            return false;
+            throw new NullPointerException();
         }
     }
 
     //select tuples from given table according to conditions, return result tuples
-    public static Vector<TableRow> select(String tableName, Vector<Condition> conditions) {
+    public static Vector<TableRow> select(String tableName, Vector<Condition> conditions) throws Exception{
         int tupleNum = CatalogManager.get_row_num(tableName);
         int storeLen = get_store_length(tableName);
 
@@ -56,9 +55,10 @@ public class RecordManager {
         Vector<TableRow> result = new Vector<>(); //table row result
 
         Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
-        if(block == null) { //can't get from buffer
+        if(block == null)  //can't get from buffer
+            throw new NullPointerException();
+        if(!check_condition(tableName, conditions))  //check condition
             return result;
-        }
 
         while(processNum < tupleNum) { //scan the block in sequence
             if (byteOffset + storeLen >= Block.BLOCKSIZE) { //find next block
@@ -87,13 +87,14 @@ public class RecordManager {
     }
 
     //insert the tuple in given table, return the inserted address
-    public static Address insert(String tableName, TableRow data) {
+    public static Address insert(String tableName, TableRow data) throws Exception{
         int tupleNum = CatalogManager.get_row_num(tableName);
         Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
 
-        if(headBlock == null) { //can't get from buffer
+        if(headBlock == null) //can't get from buffer
+            throw new NullPointerException();
+        if(!check_row(tableName, data)) // illegal
             return null;
-        }
 
         headBlock.lock(true); //lock first block for later write
 
@@ -126,7 +127,7 @@ public class RecordManager {
     }
 
     //delete the condition-satisfied tuples from given table, return number of deleted tuples
-    public static int delete(String tableName, Vector<Condition> conditions) {
+    public static int delete(String tableName, Vector<Condition> conditions) throws Exception{
         int tupleNum = CatalogManager.get_row_num(tableName);
         int storeLen = get_store_length(tableName);
 
@@ -138,9 +139,10 @@ public class RecordManager {
         Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
         Block laterBlock = headBlock; //block for sequently scanning
 
-        if(headBlock == null) { //can't get from buffer
+        if(headBlock == null)  //can't get from buffer
+            throw new NullPointerException();
+        if(!check_condition(tableName, conditions))  //check condition
             return 0;
-        }
 
         headBlock.lock(true); //lock head block for free list update
 
@@ -185,12 +187,10 @@ public class RecordManager {
     }
 
     //select the tuple from given list of address on one table with conditions, return result list of tuples
-    public static Vector<TableRow> select(Vector<Address> address, Vector<Condition> conditions) {
+    public static Vector<TableRow> select(Vector<Address> address, Vector<Condition> conditions) throws Exception{
         if(address.size() == 0) //empty address
             return new Vector<>();
-
         Collections.sort(address); //sort address
-
         String tableName = address.get(0).get_file_name(); //get table name
         int blockOffset = 0, blockOffsetPre = -1; //current and previous block offset
         int byteOffset = 0; //current byte offset
@@ -198,13 +198,17 @@ public class RecordManager {
         Block block = null;
         Vector<TableRow> result = new Vector<>();
 
+        if(!check_condition(tableName, conditions))  //check condition
+            return result;
+
         for(int i = 0;i < address.size(); i++) { //for each later address
             blockOffset = address.get(i).get_block_offset(); //read block and byte offset
             byteOffset = address.get(i).get_byte_offset();
-            if(i == 0 || blockOffset != blockOffsetPre) { //not in same block as previous
+            if (i == 0 || blockOffset != blockOffsetPre) { //not in same block as previous
                 block = BufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
                 if(block == null) {
-                    return result;
+                    if (i == 0)
+                        throw new NullPointerException();
                 }
             }
             if (block.read_integer(byteOffset) < 0) { //tuple is valid
@@ -224,12 +228,11 @@ public class RecordManager {
     }
 
     //delete the tuples from given address on one table with conditions, return the number of delete tuples
-    public static int delete(Vector<Address> address, Vector<Condition> conditions) {
+    public static int delete(Vector<Address> address, Vector<Condition> conditions) throws Exception {
         if(address.size() == 0) //empty address
             return 0;
 
         Collections.sort(address); //sort address
-
         String tableName = address.get(0).get_file_name(); //get table name
 
         int blockOffset = 0,blockOffsetPre = -1; //current and previous block offset
@@ -239,9 +242,10 @@ public class RecordManager {
         Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get head block
         Block deleteBlock = null;
 
-        if(headBlock == null) { //can't get from buffer
+        if(headBlock == null)  //can't get from buffer
+            throw new NullPointerException();
+        if(!check_condition(tableName, conditions))  //check condition
             return 0;
-        }
 
         headBlock.lock(true); //lock head block for free list update
 
@@ -288,14 +292,18 @@ public class RecordManager {
     }
 
     //do projection on given result and projected attribute name in given table, return the projection result
-    public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName) {
+    public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName) throws Exception{
         int attributeNum = CatalogManager.get_attribute_num(tableName);
         Vector<TableRow> projectResult = new Vector<>();
         for(int i = 0;i < result.size();i++) { //for each tuple in result
             TableRow newRow = new TableRow();
             for(int j = 0;j < projectName.size();j++) { //for each project attribute name
                 int index = CatalogManager.get_attribute_index(tableName, projectName.get(j)); //get index
-                newRow.add_attribute_value(result.get(i).get_attribute_value(index)); //set attribute to tuple
+                if (index == -1) {
+                    throw new IllegalArgumentException("Can't not find attribute " + projectName.get(j));
+                } else {
+                    newRow.add_attribute_value(result.get(i).get_attribute_value(index)); //set attribute to tuple
+                }
             }
             projectResult.add(newRow);
         }
@@ -411,4 +419,58 @@ public class RecordManager {
         }
     }
 
+    //check whether the tuple statisfy the table attribute definition
+    private static boolean check_row(String tableName, TableRow data) throws Exception{
+        if (CatalogManager.get_attribute_num(tableName) != data.get_attribute_size())
+            throw new IllegalArgumentException("Attribute number dosen't match");
+
+        for (int i = 0;i < data.get_attribute_size();i++) {
+            String type = CatalogManager.get_type(tableName, i);
+            int length = CatalogManager.get_length(tableName, i);
+            if (!check_type(type, length, data.get_attribute_value(i)))
+                return false;
+        }
+        return true;
+    }
+
+    //check whether the condition statisfy the table attribute definition
+    private static boolean check_condition(String tableName, Vector<Condition> conditions) throws Exception{
+        for(int i = 0;i <conditions.size();i++) {
+            int index = CatalogManager.get_attribute_index(tableName, conditions.get(i).get_name());
+            if(index == -1)
+                throw new IllegalArgumentException("Can't not find attribute " + conditions.get(i).get_name());
+            String type = CatalogManager.get_type(tableName, index);
+            int length = CatalogManager.get_length(tableName ,index);
+            if (!check_type(type, length, conditions.get(i).get_value()))
+                return false;
+        }
+        return true;
+    }
+
+    //check whether the type correspond the attribute value
+    private static boolean check_type(String type, int length, String value) throws Exception{
+        switch (type) { //check type
+            case "INT":
+                try {
+                    Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(value + " dosen't match int type or overflow");
+                }
+                break;
+            case "FLOAT":
+                try {
+                    Float.parseFloat(value);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(value + " dosen't match float type or overflow");
+                }
+                break;
+            case "CHAR":
+                if(length < value.length())
+                    throw new IllegalArgumentException("The char number " + value + " must be limited in " + length + " bytes");
+                break;
+            default:
+                throw new IllegalArgumentException("Undefined type of " + type);
+        }
+        return true;
+    }
 }
