@@ -17,19 +17,15 @@ public class RecordManager {
 
     //create a file for new table, return true if success, otherwise return false
     public static boolean create_table(String tableName) throws Exception{
-        try {
-            File file =new File(tableName);
-            if (!file.createNewFile()) //file already exists
-                throw new NullPointerException();
-            Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
-            if(block == null) { //can't get from buffer
-                throw new NullPointerException();
-            } else {
-                block.write_integer(0, -1); //write to free list head, -1 means no free space
-                return true;
-            }
-        } catch(Exception e) {
-            return false;
+        File file =new File(tableName);
+        if (!file.createNewFile()) //file already exists
+            throw new NullPointerException();
+        Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
+        if(block == null) { //can't get from buffer
+            throw new NullPointerException();
+        } else {
+            block.write_integer(0, -1); //write to free list head, -1 means no free space
+            return true;
         }
     }
 
