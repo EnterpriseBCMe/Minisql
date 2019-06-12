@@ -313,14 +313,14 @@ public class Interpreter {
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), new Vector<>());
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret);
+                Utils.print_rows(ret, tabStr);
             } else { //select * from [] where [];
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
                 conditions = Utils.create_conditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), conditions);
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret);
+                Utils.print_rows(ret, tabStr);
             }
         } else {
             attrNames = Utils.convert(attrStr.split(" *, *")); //get attributes list
@@ -328,14 +328,14 @@ public class Interpreter {
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, attrNames, new Vector<>());
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret);
+                Utils.print_rows(ret, tabStr);
             } else { //select [attr] from [table] where
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
                 conditions = Utils.create_conditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, attrNames, conditions);
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret);
+                Utils.print_rows(ret, tabStr);
             }
         }
         double usedTime = (endTime - startTime) / 1000.0;
@@ -426,12 +426,13 @@ public class Interpreter {
         if (tabStr.equals("")) {  //delete from ...
             tabStr = Utils.substring(statement, "from ", "").trim();
             num = API.delete_row(tabStr, new Vector<>());
-            System.out.println("Query ok! " + num + "row(s) deleted");
+            System.out.println("Query ok! " + num + " row(s) are deleted");
         } else {  //delete from ... where ...
             String[] conSet = conStr.split(" *and *");
             //get condition vector
             conditions = Utils.create_conditon(conSet);
-            API.delete_row(tabStr, conditions);
+            num = API.delete_row(tabStr, conditions);
+            System.out.println("Query ok! " + num + " row(s) are deleted");
         }
     }
 
@@ -527,22 +528,35 @@ class Utils {
         return len;
     }
 
-    public static void print_rows(Vector<TableRow> tab) {
+    public static void print_rows(Vector<TableRow> tab, String tabName) {
         if (tab.size() == 0) {
             System.out.println("-->Query ok! 0 rows are selected");
             return;
         }
         int attrSize = tab.get(0).get_attribute_size();
+        int cnt = 0;
         Vector<Integer> v = new Vector<>(attrSize);
-        for (int j = 0; j < attrSize; j++) v.add(get_max_attr_length(tab, j));
+        for (int j = 0; j < attrSize; j++) {
+            int len = get_max_attr_length(tab, j);
+            String attrName = CatalogManager.get_attribute_name(tabName, j);
+            if (attrName.length() > len) len = attrName.length();
+            v.add(len);
+            String format = "|%-" + len + "s";
+            System.out.printf(format, attrName);
+            cnt = cnt + len + 1;
+        }
+        cnt++;
+        System.out.println("|");
+        for (int i = 0; i < cnt; i++) System.out.print("-");
+        System.out.println();
         for (int i = 0; i < tab.size(); i++) {
             TableRow row = tab.get(i);
             for (int j = 0; j < attrSize; j++) {
                 String format = "|%-" + v.get(j) + "s";
                 System.out.printf(format, row.get_attribute_value(j));
             }
-            System.out.print("|\n");
+            System.out.println("|");
         }
-        System.out.println("-->Query ok! " + tab.size() + " rows are selected ");
+        System.out.println("-->Query ok! " + tab.size() + " rows are selected");
     }
 }
