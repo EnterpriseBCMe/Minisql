@@ -16,11 +16,12 @@ import java.util.regex.Pattern;
 public class Interpreter {
 
     private static boolean nestLock = false; //not permit to use nesting sql file execution
+    private static int execFile = 0;
 
     public static void main(String[] args) {
         try {
             API.initial();
-            System.out.println("Weclome to minisql~");
+            System.out.println("Welcome to minisql~");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             interpret(reader);
         } catch (IOException e) {
@@ -32,9 +33,9 @@ public class Interpreter {
     }
 
     private static void interpret(BufferedReader reader) throws IOException {
-        String restState = ""; //rest staement after ';' in last line
+        String restState = ""; //rest statement after ';' in last line
 
-        while (true) { //read for each statment
+        while (true) { //read for each statement
             int index;
             String line;
             StringBuilder statement = new StringBuilder();
@@ -45,7 +46,9 @@ public class Interpreter {
             } else {
                 statement.append(restState); //add rest line
                 statement.append(" ");
-                System.out.print("-->");
+                if (execFile == 0)
+                    System.out.print("MiniSQL-->");
+//                System.out.print("-->");
                 while (true) {  //read whole statement until ';'
                     line = reader.readLine();
                     if (line == null) { //read the file tail
@@ -59,7 +62,9 @@ public class Interpreter {
                     } else {
                         statement.append(line);
                         statement.append(" ");
-                        System.out.print("-->"); //next line
+                        if (execFile == 0)
+                            System.out.print("MiniSQL-->");
+//                        System.out.print("-->"); //next line
                     }
                 }
             }
@@ -185,7 +190,7 @@ public class Interpreter {
                 primaryName = attrParas[2].substring(1, attrParas[2].length() - 1); //set primary key
             } else { //ordinary definition
                 if (attrParas.length == 1)  //only attribute name
-                    throw new QException(0, 408, "Incompleted definition in attribute " + attrParas[0]);
+                    throw new QException(0, 408, "Incomplete definition in attribute " + attrParas[0]);
                 attrName = attrParas[0]; //get attribute name
                 attrType = attrParas[1]; //get attribute type
                 for (int j = 0; j < attrVec.size(); j++) { //check whether name redefines
@@ -231,7 +236,7 @@ public class Interpreter {
         }
 
         if (primaryName.equals(""))  //check whether set the primary key
-            throw new QException(0, 416, "Not specified primiary key in table " + tableName);
+            throw new QException(0, 416, "Not specified primary key in table " + tableName);
 
         Table table = new Table(tableName, primaryName, attrVec); // create table
         API.create_table(tableName, table);
@@ -448,6 +453,7 @@ public class Interpreter {
     }
 
     private static void parse_sql_file(String statement) throws Exception {
+        execFile++;
         String[] tokens = statement.split(" ");
         if (tokens.length != 2)
             throw new QException(0, 1101, "Extra parameters in sql file execution");
@@ -464,6 +470,7 @@ public class Interpreter {
         } catch (IOException e) {
             throw new QException(1, 1104, "IO exception occurs");
         } finally {
+            execFile--;
 //            nestLock = false; //unlock
         }
     }

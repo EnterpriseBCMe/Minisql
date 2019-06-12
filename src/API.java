@@ -28,7 +28,7 @@ public class API {
 
     public static boolean create_table(String tabName, Table tab) throws Exception {
         try {
-            if (CatalogManager.create_table(tab) && RecordManager.create_table(tabName)) {
+            if (RecordManager.create_table(tabName) && CatalogManager.create_table(tab)) {
                 String indexName = tabName + "_index";  //refactor index name
                 Index index = new Index(indexName, tabName, CatalogManager.get_primary_key(tabName));
                 IndexManager.create_index(index);  //create index on Index Manager
