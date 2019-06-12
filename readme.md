@@ -341,8 +341,8 @@
 + public BPTree(int order);
 
 //等值查找，此时vector应只有一个元素
-//返回索引key对应的值value，找不到则抛出异常
-+ public Vector<V> find_eq(K key) throws IllegalArgumentException;
+//返回索引key对应的值value，找不到返回空vector
++ public Vector<V> find_eq(K key);
 
 //不等值查找
 + public Vector<V> find_neq(K key);     // <>
