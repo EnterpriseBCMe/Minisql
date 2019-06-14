@@ -505,7 +505,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 3. 考察char类型上的等值条件查询，此处需观察执行时间`t1`
 
-   ```
+   ```mysql
    select * from student2 where name='name245';
    ```
 
@@ -515,7 +515,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 4. 考察int类型上的不等条件查询，观察数量
 
-   ```
+   ```mysql
    select * from student2 where id<>1080109998;
    ```
 
@@ -525,7 +525,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 5. 考察float类型上的不等条件查询，观察数量
 
-   ```
+   ```mysql
    select * from student2 where score<>98.5;
    ```
 
@@ -535,7 +535,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 6. 考察char类型上的不等条件查询，观察数量 
 
-   ```
+   ```mysql
    select * from student2 where name<>'name9998';
    ```
 
@@ -545,7 +545,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 7. 考察多条件and查询，观察数量 
 
-   ```
+   ```mysql
    select * from student2 where score>80 and score<85;
    ```
 
@@ -555,7 +555,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 8. 考察多条件and查询，观察数量 
 
-   ```
+   ```mysql
    select * from student2 where score>95 and id<=1080100100;
    ```
 
@@ -563,7 +563,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 9. 考察unique key约束冲突
 
-   ```
+   ```mysql
    insert into student2 values(1080100245,'name245',100);
    ```
 
@@ -575,7 +575,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
     * 考察非unique key建立索引的报错
 
-      ```
+      ```mysql
       create index stuidx on student2 ( score );
       ```
 
@@ -585,7 +585,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
     * 在name这个unique属性上创建index
 
-      ```
+      ```mysql
       create index stuidx on student2 ( name );
       ```
 
@@ -597,7 +597,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 11. 此处需观察执行时间`t2`
 
-    ```
+    ```mysql
     select * from student2 where name='name245';
     ```
 
@@ -607,7 +607,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 12. 考察在建立索引后再插入数据
 
-    ```
+    ```mysql
     insert into student2 values(1080197996,'name97996',100);
     ```
 
@@ -615,7 +615,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 13. 考察是否插入成功，并需观察执行时间`t3`
 
-    ```
+    ```mysql
     select * from student2 where name='name97996';
     ```
 
@@ -625,7 +625,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 14. 考察delete
 
-    ```
+    ```mysql
     delete from student2 where name='name97996';
     ```
 
@@ -633,13 +633,17 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 15. 考察是否删除成功
 
+    ```mysql
+    select from student2 where name='name97996';
+    ```
+
     ![1560501677740](assets/1560501677740.png)
 
-    删除成功
+    可见，删除成功
 
 16. 重新插入
 
-    ```
+    ```mysql
     insert into student2 values(1080197996,'name97996',100);
     ```
 
@@ -647,7 +651,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 17. 考察drop index
 
-    ```
+    ```mysql
     drop index stuidx;
     ```
 
@@ -657,7 +661,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 18. 需观察此处的执行时间`t4`
 
-    ```
+    ```mysql
     select * from student2 where name='name97996';
     ```
 
@@ -667,7 +671,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 19. 需观察此处的执行时间`t5`
 
-    ```
+    ```mysql
     select * from student2 where name='name245';
     ```
 
@@ -677,7 +681,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 20. 考察主键（有索引）delete
 
-    ```
+    ```mysql
     delete from student2 where id=1080100245;
     ```
 
@@ -685,7 +689,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 21. 考察是否删除成功
 
-    ```
+    ```mysql
     select * from student2 where id=1080100245;
     ```
 
@@ -695,7 +699,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 22. 考察（无索引）delete
 
-    ```
+    ```mysql
     delete from student2 where score=98.5;
     ```
 
@@ -705,7 +709,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 23. 考察是否删除成功
 
-    ```
+    ```mysql
     select * from student2 where score=98.5;
     ```
 
@@ -715,7 +719,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 24. 考察delete（所有元素）
 
-    ```
+    ```mysql
     delete from student2;
     ```
 
@@ -725,7 +729,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 25. 考察是否删除成功
 
-    ```
+    ```mysql
     select * from student2;
     ```
 
@@ -735,7 +739,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 26. 考察drop table
 
-    ```
+    ```mysql
     drop table student2;
     ```
 
@@ -745,7 +749,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 27. 考察drop table后再select是否报错
 
-    ```
+    ```mysql
     select * from student2;
     ```
 
