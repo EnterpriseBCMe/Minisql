@@ -422,9 +422,350 @@ B+树的删除比插入更为复杂，流程图如下：
 
 
 
-## 4 系统测试（zjs）
+## 4 系统测试
 
+#### 4.1 程序的启动
 
+我们将*MiniSQL*的代码编译打包为.jar文件，进入系统控制台cd到目录下后，输入指令`java -jar minisql.jar`即可启动程序，界面如下：
+
+![1560500012132](assets/1560500012132.png)
+
+#### 4.2 表的建立与测试数据的插入
+
+首先，我们建立表`student2`：
+
+```mysql
+create table student2(
+	id int,
+	name char(12) unique,
+	score float,
+	primary key(id) 
+);
+```
+
+然后插入10000条测试数据。由于数据量较大，我们使用`execfile`命令进行文件批处理：
+
+```mysql
+execfile student.txt;
+```
+
+![1560500315339](assets/1560500315339.png)
+
+脚本文件student.txt内容如下，包含嵌套调用：
+
+```mysql
+create table student2(
+	id int,
+	name char(12) unique,
+	score float,
+	primary key(id) 
+);
+
+execfile instruction0.txt;
+execfile instruction1.txt;
+execfile instruction2.txt;
+execfile instruction3.txt;
+execfile instruction4.txt;
+execfile instruction5.txt;
+execfile instruction6.txt;
+execfile instruction7.txt;
+execfile instruction8.txt;
+execfile instruction9.txt;
+```
+
+instruction0~instruction9.txt每个包含1000条插入记录，在此不具体展示。
+
+![1560500340070](assets/1560500340070.png)
+
+执行完毕后，文件目录下已经多了两个文件：
+
+![1560500417738](assets/1560500417738.png)
+
+分别为表数据文件与主键`id`的索引文件。
+
+#### 4.3 多条测试语句
+
+1. 首先考察int类型上的等值条件查询 
+
+   ```mysql
+   select * from student2 where id=1080100245;
+   ```
+
+   ![1560500813851](assets/1560500813851.png)
+
+2. 考察float类型上的等值条件查询，观察数量
+
+   ```mysql
+   select * from student2 where score=98.5;
+   ```
+
+   ![1560500852296](assets/1560500852296.png)
+
+   数量为166
+
+3. 考察char类型上的等值条件查询，此处需观察执行时间`t1`
+
+   ```
+   select * from student2 where name='name245';
+   ```
+
+   ![1560500883478](assets/1560500883478.png)
+
+   记录：`t1`=0.006s
+
+4. 考察int类型上的不等条件查询，观察数量
+
+   ```
+   select * from student2 where id<>1080109998;
+   ```
+
+   ![1560500954325](assets/1560500954325.png)
+
+   数量为9999，符合预期
+
+5. 考察float类型上的不等条件查询，观察数量
+
+   ```
+   select * from student2 where score<>98.5;
+   ```
+
+   ![1560500994503](assets/1560500994503.png)
+
+   数量为9834，与2中对比知，由于 $9834=10000-166$，符合预期
+
+6. 考察char类型上的不等条件查询，观察数量 
+
+   ```
+   select * from student2 where name<>'name9998';
+   ```
+
+   ![1560501084419](assets/1560501084419.png)
+
+   数量为9999，由于name是unique key，因此符合预期
+
+7. 考察多条件and查询，观察数量 
+
+   ```
+   select * from student2 where score>80 and score<85;
+   ```
+
+   ![1560501138507](assets/1560501138507.png)
+
+   可以看到，选取出来的数据score的确处于$(80,85)$之间
+
+8. 考察多条件and查询，观察数量 
+
+   ```
+   select * from student2 where score>95 and id<=1080100100;
+   ```
+
+   ![1560501200973](assets/1560501200973.png)
+
+9. 考察unique key约束冲突
+
+   ```
+   insert into student2 values(1080100245,'name245',100);
+   ```
+
+   ![1560501229939](assets/1560501229939.png)
+
+   由于表中已存在`id`=1080100245的数据，因此报错
+
+10. 考察索引的建立
+
+    * 考察非unique key建立索引的报错
+
+      ```
+      create index stuidx on student2 ( score );
+      ```
+
+      ![1560501284020](assets/1560501284020.png)
+
+      由于unique key才能建立索引，因此报错
+
+    * 在name这个unique属性上创建index
+
+      ```
+      create index stuidx on student2 ( name );
+      ```
+
+      ![1560501336938](assets/1560501336938.png)
+
+      ![1560501793499](assets/1560501793499.png)
+
+      目录中多了一个.index文件，索引创建成功
+
+11. 此处需观察执行时间`t2`
+
+    ```
+    select * from student2 where name='name245';
+    ```
+
+    ![1560501374524](assets/1560501374524.png)
+
+    建立索引后，`t2`=0.0s（*Java*系统时间最小精度1ms，即小于1ms），与建立索引前的`t1`=0.006s相比，速度提升明显
+
+12. 考察在建立索引后再插入数据
+
+    ```
+    insert into student2 values(1080197996,'name97996',100);
+    ```
+
+    ![1560501583505](assets/1560501583505.png)
+
+13. 考察是否插入成功，并需观察执行时间`t3`
+
+    ```
+    select * from student2 where name='name97996';
+    ```
+
+    ![1560501612578](assets/1560501612578.png)
+
+    插入成功，`t3`=0.0s
+
+14. 考察delete
+
+    ```
+    delete from student2 where name='name97996';
+    ```
+
+    ![1560501657513](assets/1560501657513.png)
+
+15. 考察是否删除成功
+
+    ![1560501677740](assets/1560501677740.png)
+
+    删除成功
+
+16. 重新插入
+
+    ```
+    insert into student2 values(1080197996,'name97996',100);
+    ```
+
+    ![1560501583505](assets/1560501583505.png)
+
+17. 考察drop index
+
+    ```
+    drop index stuidx;
+    ```
+
+    ![1560501742658](assets/1560501742658.png)
+
+    提示删除成功，进入文件目录中发现.index文件已被删除
+
+18. 需观察此处的执行时间`t4`
+
+    ```
+    select * from student2 where name='name97996';
+    ```
+
+    ![1560501875029](assets/1560501875029.png)
+
+    与`t3`比较发现，删除索引后，查找速度的确明显变慢
+
+19. 需观察此处的执行时间`t5`
+
+    ```
+    select * from student2 where name='name245';
+    ```
+
+    ![1560501941659](assets/1560501941659.png)
+
+    与`t2`比较发现，删除索引后，查找速度的确明显变慢
+
+20. 考察主键（有索引）delete
+
+    ```
+    delete from student2 where id=1080100245;
+    ```
+
+    ![1560502001954](assets/1560502001954.png)
+
+21. 考察是否删除成功
+
+    ```
+    select * from student2 where id=1080100245;
+    ```
+
+    ![1560502013986](assets/1560502013986.png)
+
+    可见，删除成功
+
+22. 考察（无索引）delete
+
+    ```
+    delete from student2 where score=98.5;
+    ```
+
+    ![1560502054828](assets/1560502054828.png)
+
+    与2中的数量（166）相等，符合预期
+
+23. 考察是否删除成功
+
+    ```
+    select * from student2 where score=98.5;
+    ```
+
+    ![1560502089010](assets/1560502089010.png)
+
+    可见，删除成功
+
+24. 考察delete（所有元素）
+
+    ```
+    delete from student2;
+    ```
+
+    ![1560502115946](assets/1560502115946.png)
+
+    $9834=10000-166$，数量符合预期
+
+25. 考察是否删除成功
+
+    ```
+    select * from student2;
+    ```
+
+    ![1560502150265](assets/1560502150265.png)
+
+    可见，删除成功
+
+26. 考察drop table
+
+    ```
+    drop table student2;
+    ```
+
+    ![1560502173867](assets/1560502173867.png)
+
+    进入文件目录，发现表数据文件student2与主键的索引文件student2_index.index均已删除
+
+27. 考察drop table后再select是否报错
+
+    ```
+    select * from student2;
+    ```
+
+    ![1560502250898](assets/1560502250898.png)
+
+    表student2已不存在，因此select报错。
+
+#### 4.4 程序结束
+
+结束程序时，应输入语句`quit;`（而不是直接点击右上角的红叉），因为退出时会执行一些终止化操作，把*CatalogManager*、*IndexManager* 中的信息以及 *BufferManager* 中的缓存写回硬盘，直接点击红叉可能会导致下次程序启动时初始化错误。
+
+![1560502659886](assets/1560502659886.png)
+
+退出后，目录中多出了index_catalog, table_catalog两个文件：
+
+![1560502736677](assets/1560502736677.png)
+
+#### 4.5 结论
+
+通过多条语句的测试，以及对一些select语句选取到的数量的观察可知，*MiniSQL*能够很好地完成指定的功能。而对于一些逻辑错误（如unique key重复插入、非unique key建索引等）也能及时检测并报错。而在索引的性能对比中，在有无索引情况下执行相同语句，有`t2`<`t1`, `t2`<`t5`和`t3`<`t4`，索引对性能的提升一目了然。
 
 
 
