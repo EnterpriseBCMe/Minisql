@@ -102,9 +102,91 @@
 
 #### 3.3 *CatalogManager* 接口（stl）
 
+***CatalogManager*设计思想：**`CatalogManager`负责管理数据库的所有模式信息，主要是表的所有信息以及表中字段上所有的索引信息，其总体设计思想如下:
 
+* **哈希存储**： 采用`LinkedHashMap`这一数据结构存储所有的表和索引信息。作为哈希表，插入的`Table`和`Index`不允许重复，新的则插入在有空闲的地方。该数据结构同时拥有链表的特性，可以在读取哈希表中所有数据时保持插入时的顺序输出。
+* **抽象类型**： 将`Table`、`Index`、`Attribute`等模式信息全部各自封装为一个完整的类，可以访问其public部分的模式信息和public的函数。`Table`作为整个模块的核心，它的类中封装有所有相关的`Index`和`Attribute`。
+* **信息传递**：`CatalogManager`模块没有依赖于其他模块而存在，与之相对的，`CatalogManager`提供了大量的接口供`BufferManager`以外的所有模块使用。`CatalogManager`实现虽然难度不大，却是整个项目的核心之一所在。
+* **文件读写**：生成`table_catalog`和`index_catalog`两个文件，分别保存`Table`和`Index` 的所有模式信息。
+
+***CatalogManager* 主要函数实现：**
+
+* **初始化**：从`table_catalog`和`index_catalog`两个文件中读取所有模式信息并插入到两个哈希表中。
+* **存储**：程序关闭时将哈希表中所有模式信息写回到两个文件中。
+* **打印**：`show_table()`和`show_index()`两个函数负责打印出所有表的信息和索引信息。打印时的分隔符可随打印的字符串的长度而改变。
+* **读取信息**：大量的`get_xx（）`接口帮助其他模块在仅知道表名/索引名等有限的信息时查询到其他有关联的信息。
+* **插入**：插入表时直接插入到哈希表，插入索引时需要在哈希表和索引对应的那张表中写入索引信息。
+* **删除**：删除表时直接从哈希表中删除。删除索引时需要在哈希表和索引对应的那张表中都删除索引信息。
+
+`CatalogManager`对外提供以下接口：
+
+```java
+//初始化Catalog，读取table_catalog和index_catalog中所有模式信息
++ public static void initial_catalog() throws IOException;
+
+//将内存中所有信息的写入文件
++ public static void store_catalog() throws IOException；
+
+//打印内存中table和index的信息
++ public static void show_catalog()；
+
+//打印内存中table的信息
++ public static void show_table()；
+
+//打印内存中index的信息
++ public static void show_index()；
+
+ //通过表名获得Table类对象的信息
++ public static Table get_table(String tableName)；
++ public static Index get_index(String indexName)；
++ public static String get_primary_key(String tableName)；
++ public static int get_row_length(String tableName)；
++ public static int get_attribute_num(String tableName)；
++ public static int get_row_num(String tableName)；
+
+//字段的判断函数，是则返回true
++ public static boolean is_primary_key(String tableName, String attributeName)；
++ public static boolean is_unique(String tableName, String attributeName)；
++ public static boolean is_index_key(String tableName, String attributeName)；
+
+//获得某个index或attribute的信息
++ public static String get_index_name(String tableName, String attributeName)；
++ public static String get_attribute_name(String tableName, int i)；
++ public static int get_attribute_index(String tableName, String attributeName)；
++ public static FieldType get_attribute_type(String tableName, String attributeName)；
+
+//获得attribute的length和type
++ public static int get_length(String tableName, String attributeName)；
++ public static String get_type(String tableName, int i)；
++ public static int get_length(String tableName, int i)；
+
+//tuple行数的修改
++ public static void add_row_num(String tableName)；
++ public static void delete_row_num(String tableName, int num)；
+
+//更换index
++ public static boolean update_index_table(String indexName, Index tmpIndex)；
+
+//检查attributeVector中是否有特定attribute
++ public static boolean is_attribute_exist(Vector<Attribute> attributeVector, String attributeName)；
+
+//***常用接口*****
+
+//建立表，建立失败则抛出异常
++ public static boolean create_table(Table newTable) throws NullPointerException；
+
+//删除表，删除失败则抛出异常
++ public static boolean drop_table(String tableName) throws NullPointerException；
+
+//建立索引，建立失败则抛出异常
++ public static boolean create_index(Index newIndex) throws NullPointerException；
+
+//删除索引，删除失败则抛出异常
++ public static boolean drop_index(String indexName) throws NullPointerException；
+```
 
 #### 3.4 *RecordManager* 接口（yrj）
+
 ***RecodManager* 设计思想：** `RecordManager`负责管理记录表中数据的数据文件，实现最终对文件内记录的增查删改操作，其总体设计思想如下：
 
 - **单表存储**：一个文件存一张表，一张表上的所有记录全部存在一个文件内
@@ -305,6 +387,28 @@ B+树的删除比插入更为复杂，流程图如下：
 
 ##### 2. *IndexManager*接口
 
+```java
+//select函数的判断，用于debug
++ public static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException;
+
+//select函数，根据指定的index和模块内的IndexMap进行搜索，cond为索引列的查找条件，若成功则返回Address Vector（支持范围查找）
++ public static Vector<Address> select(Index idx, Condition cond) throws IllegalArgumentException;
+
+//删除、插入、更新操作，key为要删除、插入、更新的节点的键值（仅支持等值查找）
++ public static void delete(Index idx, String key) throws IllegalArgumentException;
++ public static void insert(Index idx, String key, Address value) throws IllegalArgumentException;
++ public static void update(Index idx, String key, Address value) throws IllegalArgumentException;
+
+//初始化IndexManager模块
++ public static void initial_index() throws IOException;
+
+//根据索引建立B+树并且将相关信息写入硬盘
++ public static boolean create_index(Index idx) throws IOException, IllegalArgumentException, RuntimeException;
+
+//删除索引（文件）
++ public static boolean drop_index(Index idx);
+```
+
 
 
 #### 3.6 *BufferManager* 接口
@@ -420,7 +524,8 @@ B+树的删除比插入更为复杂，流程图如下：
 
 #### 3.7 *DB Files* 管理（谁建的文件谁写hhh）
 
-
+* `CatalogManager`中建立了两个文件`table_catlog`和`index_catalog`，用于保存所有的`Table`信息和`Index`信息供其他模块查询。在`CatalogManager`中`Index`的存储是一体的，没有根据不同表分开存储`Index`。
+* `IndexManager`中针对每个表会建立一个`.index`文件保存相应表的索引。
 
 ## 4 系统测试
 
