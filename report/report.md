@@ -164,13 +164,45 @@ public class QException extends Exception {
 
 存储在table_catalog和index_catalog两个二进制文件中，在创建出catalog实例的时候即解析这两个文件并载入内存中由于。这两个文件使用频繁并且占用内存并不大，所以由`CatalogManager`单独保管，而不交给`BufferManager`管理。
 
-##### 3. *BufferManager*, *Block*数据结构（ycj） 
+##### 3. *BufferManager*, *Block*数据结构（ycj）
 
 
 
 #### 3.2 *Interpreter* 实现（yrj先写 ycj补充）
+***Interperter*总体流程： ** `Interpreter`模块直接与用户交互，负责接收并解释用户输入的命令，返回结果信息，实现程序总体流程控制，其总体设计流程如下:
 
+1. **语句读入**：采用`BufferReader`类作为输入流，`StringBuilder`类作为命令语句存储空间。首先循环从输入流中读入一行字符，添加到存储空间中，直到该行字符串存在`;`字符，表明结束，此时进行字符串截取，保留`;`之前的字符串作为当前处理命令，`;`之后的字符串作为下一条命令的开始。每次进行读取时，需要先判断上一次剩余的字符串是否存在`;`，决定是否再次进行截取。
 
+2. **正则替换**: 得到当前处理命令语句后，进行正则替换，将头尾的空白字符去除，将语句内的多个空白字符替换成一个空格，得到正则替换后的命令语句。
+
+3. **初步解析**：将正则替换后的命令语句进行分割，调用`String`类的`split`函数对空格进行分割，得到一个`token`数组。对`token`数组中的关键字进行初步判断，如`create`、`delete`等，若关键字对应，则跳转至该关键字的处理流程中，进行二级解析。若没有对应的关键字，则抛出异常。
+
+4. **二级解析**：初步解析后，根据关键字跳转至相应的解析函数中，内部进行最终解析，根据相应的命令语句调用`API`模块函数完成交互，显示结果，或根据语法错误抛出异常。共有`create table`，`create index`，`drop table`，`drop index`，`show`，`insert`，`select`，`delete`，`exefile`，`quit`这几类子处理流程，将在下一部分详细介绍。
+
+5. **异常处理**：所有异常在子处理流程中抛出，在总处理流程中捕获，显示异常对应的状态吗，异常类型和异常信息。
+
+6. **循环流程**：处理完一条命令后，重新循环处理下一条命令。直到手动退出，此时关闭输入流并结束程序。此外，若输入流到达末尾 (文件读入)，则关闭输入流并进行程序返回。
+
+**二级解析流程实现介绍**:
+* `create table`：首先进行正则替换，将`()`和`,`的分割转化为统一形式。接着跳过`create table`关键字，读取表名，然后将属性定义两边的`()`去掉，获得中间属性。得到整个的属性定义字符串后，调用`String`的`split`函数对`,`进行分割，分别得到每个属性的定义。对于每个属性，再次调用`String`的`split`函数对空格进行分割，得到属性名、类型、长度、唯一约束，主键定义等信息。将所有读取的属性信息构造成一个 `Table`类变量，再根据之前读取的表名，调用`API`中的`create_table`函数完成表的创建。此外，流程会对语法错误进行判断，并抛出相应的异常。
+
+* `create index`：首先进行正则替换，将`()`的分割转化为统一形式。接着跳过`create index`关键字，读取索引名、然后跳过`on`关键字，读取表名，将属性名两边的`()`去掉，读取属性名。根据读入的索引名、表名、属性名信息，构造一个`Index`类变量，然后调用`API`中的`create_index`函数完成索引的创建。此外，流程会对语法错误进行判断，并抛出相应的异常。
+
+* `drop table`：首先跳过`drop table`关键字，读取表名，然后根据表名调用`API`中的`drop_table`函数完成对表的删除。此外，流程会对语法错误进行判断，并抛出相应的异常。
+
+* `drop index`：首先跳过`drop index`关键字，读取索引名，然后根据索引名调用`API`中的`drop_index`函数完成对索引的删除。此外，流程会对语法错误进行判断，并抛出相应的异常。
+
+* `show`：
+
+* `insert`：首先进行正则替换，将`()`和`,`的分割转化为统一形式。接着跳过`insert into`关键字，读取表名，然后跳过`values`关键字，将属性值两边的`()`去掉，提取中间的属性值。得到整个属性值定义字符串后，调用`String`类中`split`函数对`,`进行分割，得到每个属性的值。对于每个属性值，判断其两端是否有`''`或`""`，若有则将其去除，将全部得到属性值构造成一个`TableRow`类型的变量，调用`API`中`insert_row`函数对记录进行插入。此外，流程会对语法错误进行判断，并抛出相应的异常。
+
+* `select`：
+
+* `delete`：
+
+* `exefile`：首先跳过`exefile`关键字，读取文件名。然后根据文件名构造一个`BufferReader`类的输入流变量，以此为参数递归调用总体解析流程。此外，流程会对对语法错误进行判断，并抛出相应的异常。对于文件不存在等错误，也抛出相应异常。
+
+* `quit`：首先关闭`BufferReader`输入流，然后调用`System.out.exit`退出程序。此外，流程会对语法错误进行判断，并抛出相应的异常。
 
 #### 3.3 *CatalogManager* 接口（stl）
 
@@ -451,7 +483,7 @@ B+树的删除比插入更为复杂，流程图如下：
     + static class InternalNode<K extends Comparable<? super K>, V> extends Node<K, V>;
     //叶节点类声明
     + static class LeafNode<K extends Comparable<? super K>, V> extends Node<K, V>;
-	
+
     + private Node<K, V> root; //根
     + private int order; //阶数
 }
@@ -629,7 +661,7 @@ create table student2(
 	id int,
 	name char(12) unique,
 	score float,
-	primary key(id) 
+	primary key(id)
 );
 ```
 
@@ -648,7 +680,7 @@ create table student2(
 	id int,
 	name char(12) unique,
 	score float,
-	primary key(id) 
+	primary key(id)
 );
 
 execfile instruction0.txt;
@@ -675,7 +707,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 #### 4.3 多条测试语句
 
-1. 首先考察int类型上的等值条件查询 
+1. 首先考察int类型上的等值条件查询
 
    ```mysql
    select * from student2 where id=1080100245;
@@ -723,7 +755,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
    数量为9834，与2中对比知，由于 $9834=10000-166$，符合预期
 
-6. 考察char类型上的不等条件查询，观察数量 
+6. 考察char类型上的不等条件查询，观察数量
 
    ```mysql
    select * from student2 where name<>'name9998';
@@ -733,7 +765,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
    数量为9999，由于name是unique key，因此符合预期
 
-7. 考察多条件and查询，观察数量 
+7. 考察多条件and查询，观察数量
 
    ```mysql
    select * from student2 where score>80 and score<85;
@@ -743,7 +775,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
    可以看到，选取出来的数据score的确处于$(80,85)$之间
 
-8. 考察多条件and查询，观察数量 
+8. 考察多条件and查询，观察数量
 
    ```mysql
    select * from student2 where score>95 and id<=1080100100;
