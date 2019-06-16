@@ -2,7 +2,7 @@
 
 ##### 浙江大学2018~2019学年春夏学期《数据库系统》夏学期大程报告
 
-## 1 总体框架（zjs/stl看着补充一些）
+## 1 总体框架
 
 #### 1.1 实现功能分析
 
@@ -92,7 +92,7 @@
 
 ## 3 内部数据形式及各模块提供的接口（各写各的）
 
-#### 3.1 内部数据存放形式（zjs）
+#### 3.1 内部数据存放形式
 
 ##### 1. 异常处理
 
@@ -162,13 +162,23 @@ public class QException extends Exception {
 
 ##### 2. *CatalogManager*数据
 
-存储在table_catalog和index_catalog两个二进制文件中，在创建出catalog实例的时候即解析这两个文件并载入内存中由于。这两个文件使用频繁并且占用内存并不大，所以由`CatalogManager`单独保管，而不交给`BufferManager`管理。
+存储在`table_catalog`和`index_catalog`两个二进制文件中，在创建出catalog实例的时候即解析这两个文件并载入内存中由于。这两个文件使用频繁并且占用内存并不大，所以由`CatalogManager`单独保管，而不交给`BufferManager`管理。
 
-##### 3. *BufferManager*, *Block*数据结构（ycj）
+##### 3. *BufferManager*, *Block*数据结构
+
+`BufferManager`缓冲区主要由`Block`类以及一系列的成员方法进行管理。为了提高I/O效率，每一个`Block`由4096字节组成，同时，缓冲区中最多能够放置50个`Block`，其数据结构如下：
+
+```java
+public static final int BLOCKSIZE = 4096;  //4KB for 1 block
+private byte[] blockData = new byte[BLOCKSIZE];  //allocate 4KB memory for 1 block
+
+private static final int MAXBLOCKNUM = 50;  //maximum block numbers
+public static Block[] buffer = new Block[MAXBLOCKNUM];  //buffer
+```
 
 
 
-#### 3.2 *Interpreter* 实现（yrj先写 ycj补充）
+#### 3.2 *Interpreter* 实现
 ***Interperter*总体流程： ** `Interpreter`模块直接与用户交互，负责接收并解释用户输入的命令，返回结果信息，实现程序总体流程控制，其总体设计流程如下:
 
 1. **语句读入**：采用`BufferReader`类作为输入流，`StringBuilder`类作为命令语句存储空间。首先循环从输入流中读入一行字符，添加到存储空间中，直到该行字符串存在`;`字符，表明结束，此时进行字符串截取，保留`;`之前的字符串作为当前处理命令，`;`之后的字符串作为下一条命令的开始。每次进行读取时，需要先判断上一次剩余的字符串是否存在`;`，决定是否再次进行截取。
@@ -192,19 +202,19 @@ public class QException extends Exception {
 
 * `drop index`：首先跳过`drop index`关键字，读取索引名，然后根据索引名调用`API`中的`drop_index`函数完成对索引的删除。此外，流程会对语法错误进行判断，并抛出相应的异常。
 
-* `show`：
+* `show`：首先跳过`show`关键字，然后根据下一个词是`indexes`还是`tables`来决定显示索引还是数据表，如果关键词不是这两者则报错。
 
 * `insert`：首先进行正则替换，将`()`和`,`的分割转化为统一形式。接着跳过`insert into`关键字，读取表名，然后跳过`values`关键字，将属性值两边的`()`去掉，提取中间的属性值。得到整个属性值定义字符串后，调用`String`类中`split`函数对`,`进行分割，得到每个属性的值。对于每个属性值，判断其两端是否有`''`或`""`，若有则将其去除，将全部得到属性值构造成一个`TableRow`类型的变量，调用`API`中`insert_row`函数对记录进行插入。此外，流程会对语法错误进行判断，并抛出相应的异常。
 
-* `select`：
+* `select`：`select`语句主要有以下几种形式`select * from [表名];`，`select * from [表名] where [条件];` `select [属性名] from [表名];` 以及 `select [属性名] from [表名] where [条件];`。我们通过自定义函数`String substring(String stmt, String start, String end)`来得到位于两个字符串之间的子串，以最复杂的`select [属性名] from [表名] where [条件];`为例，先通过`substring(stmt,"select ", " from")`来得到属性名或`*`，如果是属性名则通过`split`函数根据`,`进行分割。同理通过`substring ( stmt,"from ", " where")`可以得到表名，通过`substring (stmt,"wuere ", "")`可以得到条件。然后只需根据具体情况判断即可。
 
-* `delete`：
+* `delete`：`delete`的处理方式与`select`类似。
 
 * `exefile`：首先跳过`exefile`关键字，读取文件名。然后根据文件名构造一个`BufferReader`类的输入流变量，以此为参数递归调用总体解析流程。此外，流程会对对语法错误进行判断，并抛出相应的异常。对于文件不存在等错误，也抛出相应异常。
 
 * `quit`：首先关闭`BufferReader`输入流，然后调用`System.out.exit`退出程序。此外，流程会对语法错误进行判断，并抛出相应的异常。
 
-#### 3.3 *CatalogManager* 接口（stl）
+#### 3.3 *CatalogManager* 接口
 
 ***CatalogManager*设计思想：**`CatalogManager`负责管理数据库的所有模式信息，主要是表的所有信息以及表中字段上所有的索引信息，其总体设计思想如下:
 
@@ -289,7 +299,7 @@ public class QException extends Exception {
 + public static boolean drop_index(String indexName) throws NullPointerException；
 ```
 
-#### 3.4 *RecordManager* 接口（yrj）
+#### 3.4 *RecordManager* 接口
 
 ***RecodManager* 设计思想：** `RecordManager`负责管理记录表中数据的数据文件，实现最终对文件内记录的增查删改操作，其总体设计思想如下：
 
@@ -365,9 +375,9 @@ public class QException extends Exception {
 
 #### 3.5 *IndexManager* 接口（stl&zjs）
 
-##### 1. B+树介绍
+##### 3.5.1 B+树介绍
 
-###### 1.1 B+树定义
+###### B+树定义
 
 首先，我们定义B+树中存放键值的数量为$n$，则每个B+树节点中有 $n$ 个键值与 $n+1$ 个指针，分为两种情况：
 
@@ -387,7 +397,7 @@ B+树的根节点特殊且唯一，其合法性判定与一般的节点不同，
 
 ![1560426440433](assets/1560426440433.png)
 
-###### 1.2 B+树查找
+###### B+树查找
 
 从根结点开始，首先从结点内部查找（由于结点内部是升序的，二分查找即可）
 
@@ -397,7 +407,7 @@ B+树的根节点特殊且唯一，其合法性判定与一般的节点不同，
 
 若叶节点中存在该索引值，就能找到对应记录的指针，若不存在，则查找失败。
 
-###### 1.3 B+树插入
+###### B+树插入
 
 B+树的插入流程图如下：
 
@@ -419,7 +429,7 @@ B+树的插入流程图如下：
 
 (2) (3) 中，红色块表示插入后导致容量超出 $n$ 的键元素，在分裂后，分裂交界处的前一个键上升一层进入父节点中，即图中的蓝色块。
 
-###### 1.4 B+树删除
+###### B+树删除
 
 B+树的删除比插入更为复杂，流程图如下：
 
@@ -447,7 +457,7 @@ B+树的删除比插入更为复杂，流程图如下：
 
    ![1560479844524](assets/1560479844524.png)
 
-###### 1.5 B+树代码接口
+###### B+树代码接口
 
 ```java
 //类声明
@@ -489,7 +499,7 @@ B+树的删除比插入更为复杂，流程图如下：
 }
 ```
 
-##### 2. *IndexManager*接口
+##### 3.5.2 *IndexManager*接口
 
 ***IndexManager*设计思想：**`IndexManager`负责管理数据库的索引，利用B+树的对数级查询速度，优化`select`和`delete`的效率，其总体设计思想如下:
 
@@ -525,8 +535,6 @@ B+树的删除比插入更为复杂，流程图如下：
 //删除索引（文件）
 + public static boolean drop_index(Index idx);
 ```
-
-
 
 #### 3.6 *BufferManager* 接口
 
@@ -639,7 +647,7 @@ B+树的删除比插入更为复杂，流程图如下：
 + public boolean write_string(int offset, String str);
 ```
 
-#### 3.7 *DB Files* 管理（谁建的文件谁写hhh）
+#### 3.7 *DB Files* 管理
 
 * `CatalogManager`中建立了两个文件`table_catlog`和`index_catalog`，用于保存所有的`Table`信息和`Index`信息供其他模块查询。在`CatalogManager`中`Index`的存储是一体的，没有根据不同表分开存储`Index`。
 * `IndexManager`中针对每个表会建立一个`.index`文件保存相应表的索引。
@@ -997,7 +1005,7 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 
 ## 5 其他说明
 
-#### 5.1 个人分工（可能会有遗漏，自己看着再加一点）
+#### 5.1 个人分工
 
 | 姓名   | 分工          |
 | ------ | ------------ |
@@ -1009,5 +1017,39 @@ instruction0~instruction9.txt每个包含1000条插入记录，在此不具体�
 #### 5.2 项目Git地址
 待验收结束后将开源项目地址： *https://github.com/ChenjunYing/Minisql*
 
+#### 5.3 项目更新日志
 
-#### 5.3 项目更新日志（最后再加）
+| Date       | User    | Info                                                         |
+| ---------- | ------- | ------------------------------------------------------------ |
+| 2019-05-18 | ycj     | 新建项目框架，约定命名、注释规范                             |
+| 2019-05-30 | ycj     | Buffer&BufferManager实现                                     |
+| 2019-06-01 | yrj     | Address&FieldType&TableRow&Condition类实现                   |
+| 2019-06-01 | ycj     | BufferManager类增加了make_invalid接口，修改了read_block_from_disk函数 |
+| 2019-06-03 | stl     | CatalogManager&Attribute&Index&Table实现&Main test函数&Condition修改 |
+| 2019-06-04 | yrj     | Condition&TableRow类修改，RecordManager实现，TestRecord测试程序上传 |
+| 2019-06-05 | zjs     | B+树类BPTree实现                                             |
+| 2019-06-06 | stl     | 修复enum语法错误，将部分print改为throw                       |
+| 2019-06-06 | ycj     | 修改BufferManager中方法为static                              |
+| 2019-06-06 | ycj     | 增加interpreter & API 文件                                   |
+| 2019-06-06 | ycj     | 修改整体架构                                                 |
+| 2019-06-07 | zjs     | BPTree修改：增加不等值查找                                   |
+| 2019-06-07 | zjs stl | 增加IndexManager，修复BPTree                                 |
+| 2019-06-07 | yrj     | 修改RecordManager，增加地址操作的条件参数                    |
+| 2019-06-08 | ycj     | 修改BufferManager，初始化使用静态函数而不是使用构造函数      |
+| 2019-06-08 | stl     | 修复API中table、index创建和删除的bug                         |
+| 2019-06-08 | yrj     | 修改RecordManager和Condition，修正了CHAR类的读写方式         |
+| 2019-06-08 | stl     | 完成API中的select函数                                        |
+| 2019-06-09 | zjs     | 修改API中的select函数                                        |
+| 2019-06-09 | zjs     | 修改API中的delete_row函数                                    |
+| 2019-06-09 | stl     | 修改API中的drop_index参数为indexName                         |
+| 2019-06-09 | ycj yrj | Interpreter模块实现                                          |
+| 2019-06-10 | yrj     | 修改RecordManager中delete函数，删除对应索引                  |
+| 2019-06-10 | ycj     | 优化查询输出，增加QException类                               |
+| 2019-06-10 | yrj     | Interpreter模块增加异常处理                                  |
+| 2019-06-11 | zjs     | Interpreter模块增加insert时的unique key重复判断              |
+| 2019-06-11 | zjs     | Interpreter模块增加create_index时的unique key判断            |
+| 2019-06-11 | stl     | 修改show_tables和show_indexes的输出                          |
+| 2018-06-11 | yrj     | Interpreter模块异常处理优化，增加计时处理                    |
+| 2019-06-12 | zjs     | Interpreter少量bug优化                                       |
+| 2019-06-12 | ycj     | 优化delete/select的输出                                      |
+| 2019-06-12 | zjs     | Interpreter优化输出，API修复bug，更改create_table异常抛出    |
