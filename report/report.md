@@ -90,11 +90,11 @@
 
 
 
-## 3 内部数据形式及各模块提供的接口（各写各的）
+## 3 内部数据形式及各模块提供的接口
 
 #### 3.1 内部数据存放形式
 
-##### 1. 异常处理
+##### 3.1.1 异常处理
 
 在底层模块中，遇到异常时，会抛出Java系统自带的异常类，如`IllegalArgumentException, NullPointerException`等，但这不便于统一输出错误信息，因此，我们自定义了`QException`异常类，`API`模块在`catch`到底层模块的异常后，统一抛出`QException`，并在`Interpreter`中进行错误信息的输出。
 
@@ -111,7 +111,7 @@ public class QException extends Exception {
 
 `status`表示自定义的错误状态码，`type`表示错误类型，分为语法错误与运行时错误，对应`ex`中的两个字符串，而`msg`则为具体的错误信息。错误状态码如下：
 
-###### 1.1 Syntax Error
+###### Syntax Error
 
 | 状态码 | 错误信息                                                    | 状态码 | 错误信息                                                   |
 | ------ | ----------------------------------------------------------- | ------ | ---------------------------------------------------------- |
@@ -140,7 +140,7 @@ public class QException extends Exception {
 | 416    | Not specified primary key in table ...                      |        |                                                            |
 | 601    | Not specify table name                                      |        |                                                            |
 
-###### 1.2 Runtime Error
+###### Runtime Error
 
 | 状态码 | 错误信息                                | 状态码 | 错误信息                           |
 | ------ | --------------------------------------- | ------ | ---------------------------------- |
@@ -160,11 +160,11 @@ public class QException extends Exception {
 
 有些不同状态码的错误信息是一样的 ，这是由于在不同的过程 (insert, delete, select , create, drop 等) 中遇到相同的问题而抛出的不同的状态码。
 
-##### 2. *CatalogManager*数据
+##### 3.1.2 *CatalogManager*数据
 
 存储在`table_catalog`和`index_catalog`两个二进制文件中，在创建出catalog实例的时候即解析这两个文件并载入内存中由于。这两个文件使用频繁并且占用内存并不大，所以由`CatalogManager`单独保管，而不交给`BufferManager`管理。
 
-##### 3. *BufferManager*, *Block*数据结构
+##### 3.1.3 *BufferManager*, *Block*数据结构
 
 `BufferManager`缓冲区主要由`Block`类以及一系列的成员方法进行管理。为了提高I/O效率，每一个`Block`由4096字节组成，同时，缓冲区中最多能够放置50个`Block`，其数据结构如下：
 
