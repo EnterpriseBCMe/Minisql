@@ -94,6 +94,78 @@
 
 #### 3.1 内部数据存放形式（zjs）
 
+##### 1. 异常处理
+
+在底层模块中，遇到异常时，会抛出Java系统自带的异常类，如`IllegalArgumentException, NullPointerException`等，但这不便于统一输出错误信息，因此，我们自定义了`QException`异常类，`API`模块在`catch`到底层模块的异常后，统一抛出`QException`，并在`Interpreter`中进行错误信息的输出。
+
+`QException`类定义如下：
+
+```java
+public class QException extends Exception {
+    public int status; //status code
+    public int type; //exception type: 0 for 'syntax error' and 1 for 'rn time error'
+    public String msg; //exception message
+    public static final String[] ex = {"Syntax error ", "Run time error "};
+}
+```
+
+`status`表示自定义的错误状态码，`type`表示错误类型，分为语法错误与运行时错误，对应`ex`中的两个字符串，而`msg`则为具体的错误信息。错误状态码如下：
+
+###### 1.1 Syntax Error
+
+| 状态码 | 错误信息                                                    | 状态码 | 错误信息                                                   |
+| ------ | ----------------------------------------------------------- | ------ | ---------------------------------------------------------- |
+| 200    | No statement specified                                      | 602    | Extra parameters in drop table                             |
+| 201    | Can't find create object                                    | 701    | Not specify index name                                     |
+| 202    | Can't identify ... (create时的名称)                         | 702    | Must add keyword 'on' after index name ...                 |
+| 203    | Can't find drop object ...                                  | 703    | Not specify table name                                     |
+| 204    | Can't identify ... (drop时的名称)                           | 704    | Not specify attribute name in table ...                    |
+| 205    | Can't identify ... (指令)                                   | 705    | Error in specify attribute name ...                        |
+| 323    | Can not find valid key word after 'show'!                   | 706    | Extra parameters in create index                           |
+| 401    | Must specify a table name                                   | 801    | Not specify index name                                     |
+| 402    | Can't find attribute definition                             | 802    | Extra parameters in drop index                             |
+| 403    | Can't not find the definition brackets in table ...         | 250    | Can not find key word 'from' or lack of blank before from! |
+| 404    | Empty attribute in table ...                                | 901    | Must add keyword 'into' after insert                       |
+| 405    | Error definition of primary key in table ...                | 902    | Not specify the table name                                 |
+| 406    | Error definition of primary key in table ...                | 903    | Must add keyword 'into' after insert                       |
+| 407    | Redefinition of primary key in table ...                    | 904    | Not specify the insert value                               |
+| 408    | Incomplete definition in attribute ...                      | 905    | Syntax error: Not specify the insert value                 |
+| 409    | Redefinition in attribute                                   | 906    | Must add keyword 'values' after table ...                  |
+| 410    | ust specify char length in ...                              | 907    | Can't not find the insert brackets in table ...            |
+| 411    | Wrong definition of char length in ...                      | 908    | Empty attribute value in insert value                      |
+| 412    | The char length in ... dosen't match a int type or overflow | 1001   | Extra parameters in quit                                   |
+| 413    | The char length in ... must be in [1,255]                   | 1101   | Extra parameters in sql file execution                     |
+| 414    | Error attribute type ... in ...                             | 1103   | Can't find the file                                        |
+| 415    | Error constraint definition in ...                          | 1104   | IO exception occurs                                        |
+| 416    | Not specified primary key in table ...                      |        |                                                            |
+| 601    | Not specify table name                                      |        |                                                            |
+
+###### 1.2 Runtime Error
+
+| 状态码 | 错误信息                                | 状态码 | 错误信息                           |
+| ------ | --------------------------------------- | ------ | ---------------------------------- |
+| 500    | Failed to initialize API!               | 512    | `IllegalArgumentException`错误信息 |
+| 501    | Table ... already exist!                | 513    | Failed to delete on table ...      |
+| 502    | Failed to create an index on table ...  | 514    | Table ... doesn't exist!           |
+| 503    | Failed to create table ...              | 515    | `IllegalArgumentException`错误信息 |
+| 504    | Table ... doesn't exist!                | 516    | Table ... doesn't exist!           |
+| 505    | Failed to drop table ...                | 517    | `IllegalArgumentException`错误信息 |
+| 506    | Failed to create index ... on table ... | 518    | Failed to select from table ...    |
+| 507    | Failed to drop index ... on table ...   | 519    | Table ... doesn't exist!           |
+| 508    | Table ... doesn't exist!                | 520    | `IllegalArgumentException`错误信息 |
+| 509    | `IllegalArgumentException`错误信息      | 521    | Table ... doesn't exist!           |
+| 510    | Failed to insert a row on table ...     | 522    | `IllegalArgumentException`错误信息 |
+| 511    | Table ... doesn't exist!                | 909    | Attribute number doesn't match     |
+| 707    | Not a unique attribute                  | 910    | Duplicate unique key: ...          |
+
+有些不同状态码的错误信息是一样的 ，这是由于在不同的过程 (insert, delete, select , create, drop 等) 中遇到相同的问题而抛出的不同的状态码。
+
+##### 2. *CatalogManager*数据
+
+存储在table_catalog和index_catalog两个二进制文件中，在创建出catalog实例的时候即解析这两个文件并载入内存中由于。这两个文件使用频繁并且占用内存并不大，所以由`CatalogManager`单独保管，而不交给`BufferManager`管理。
+
+##### 3. *BufferManager*, *Block*数据结构（ycj） 
+
 
 
 #### 3.2 *Interpreter* 实现（yrj先写 ycj补充）
@@ -387,17 +459,30 @@ B+树的删除比插入更为复杂，流程图如下：
 
 ##### 2. *IndexManager*接口
 
-```java
-//select函数的判断，用于debug
-+ public static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException;
+***IndexManager*设计思想：**`IndexManager`负责管理数据库的索引，利用B+树的对数级查询速度，优化`select`和`delete`的效率，其总体设计思想如下:
 
+- **哈希存储**： 采用`LinkedHashMap`这一数据结构存储所有的索引对应的B+树。`IndexManager`类中维护三个静态的`LinkedHashMap`示例，分别对应整型 (`Integer`) 索引、字符串 (`String`) 索引和浮点数  (`Float`)  索引的三棵B+树。
+- **地址映射**：B+树将索引类型映射到`CatalogManager`所提供的`Address`地址类，再由`RecordManager`调用`BufferManager`从硬盘中读取数据，而不是直接映射为数据块，这样做一来利用现成接口减少了编程的复杂性，二来增加了模块之间相互协作的耦合度。
+- **二次筛选**：由于筛选条件中可能含有**and**并列条件，而`IndexManager`只能对建立了索引的key进行筛选，因此还需将筛选出来的地址`Address`和条件`Condition`的`Vector`传回`RecordManager`进行二次筛选。
+- **文件读写**：`CatalogManager`读取完`index_catalog`信息后，调用`IndexManager`初始化函数，从硬盘中读取并建立B+树。
+
+***IndexManager*主要函数实现：**
+
+- **初始化**：根据`index_catalog`文件中读取到的所有索引信息，从硬盘中分别读取所有索引的B+树，并按键key的类型分别插入到3个哈希表中。
+- **插入**：插入时，直接调用B+树的`insert`函数，将键值插入到B+树中。
+- **查找**：查找是`IndexManager`的核心，从`Condition`中读取出操作符和比较值后，调用私有方法`satisfies_cond`从树中选取出符合条件的值。`satisfies_cond`使用泛型的技巧，而不是对`Integer`, `String`, `Float`分别写三个函数，节省了代码量。
+- **删除**：删除时，直接调用B+树的`delete`函数，将键值从B+树中删除。而在API中，调用删除前，会先调用`select`函数，利用索引优化快速找出要删除元素的`Vector`，再遍历`Vector`逐一删除。
+
+```java
 //select函数，根据指定的index和模块内的IndexMap进行搜索，cond为索引列的查找条件，若成功则返回Address Vector（支持范围查找）
 + public static Vector<Address> select(Index idx, Condition cond) throws IllegalArgumentException;
+
+//select中调用的私有方法，负责根据运算符和比较值，从树中查找出符合条件的值的Vector
++ private static <K extends Comparable<? super K>> Vector<Address> satisfies_cond(BPTree<K, Address> tree, String operator, K key) throws IllegalArgumentException;
 
 //删除、插入、更新操作，key为要删除、插入、更新的节点的键值（仅支持等值查找）
 + public static void delete(Index idx, String key) throws IllegalArgumentException;
 + public static void insert(Index idx, String key, Address value) throws IllegalArgumentException;
-+ public static void update(Index idx, String key, Address value) throws IllegalArgumentException;
 
 //初始化IndexManager模块
 + public static void initial_index() throws IOException;
